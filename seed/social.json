@@ -1,0 +1,35 @@
+{
+  "updated": "2026-09-29T12:00:00.000Z",
+  "links": [
+    {
+      "id": "instagram",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/monkeyheadbrewing/",
+      "label": "@monkeyheadbrewing"
+    },
+    {
+      "id": "facebook",
+      "platform": "facebook",
+      "url": "https://www.facebook.com/monkeyheadbrewing/",
+      "label": "Monkey Head Brewing"
+    },
+    {
+      "id": "untappd",
+      "platform": "untappd",
+      "url": "https://untappd.com/MonkeyHeadBrewing",
+      "label": "Untappd"
+    },
+    {
+      "id": "whatsapp",
+      "platform": "whatsapp",
+      "url": "https://wa.me/50687337046",
+      "label": "+506 8733 7046"
+    },
+    {
+      "id": "google",
+      "platform": "google",
+      "url": "https://www.google.com/maps/search/?api=1&query=Monkey+Head+Brewing&query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI",
+      "label": "Google Maps"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "updated": "2026-09-29T12:00:00.000Z",
+  "releases": [
+    {
+      "id": "festbier-2026",
+      "name": "Festbier",
+      "name_es": "Festbier",
+      "style": "Festival Lager",
+      "abv": "4.5",
+      "ibu": "28",
+      "active": true,
+      "tagline": "Our Oktoberfest collaboration with Potrero Brewing Co.",
+      "tagline_es": "Nuestra colaboración de Oktoberfest con Potrero Brewing Co.",
+      "description": "Brewed for the season with our friends at Potrero Brewing Co., Festbier is a golden, easy-drinking festival lager in the Munich tradition. Soft bready malt, a whisper of honey and a clean, crisp finish make it dangerously sessionable in the Guanacaste heat. Raise a mug while it lasts.",
+      "description_es": "Elaborada para la temporada con nuestros amigos de Potrero Brewing Co., la Festbier es una lager de festival dorada y fácil de tomar, al estilo de Múnich. Malta suave a pan, un toque de miel y un final limpio y fresco la hacen peligrosamente tomable bajo el calor de Guanacaste. Levante un tarro mientras dure.",
+      "notes": "Golden, Bready malt, Light honey, Noble hops, Crisp finish",
+      "notes_es": "Dorada, Malta a pan, Toque de miel, Lúpulos nobles, Final fresco",
+      "pairing": "Pork belly, pretzels, bratwurst, Oktoberfest pizza",
+      "pairing_es": "Panceta, pretzels, bratwurst, pizza de Oktoberfest",
+      "availability": "On tap at the taproom while it lasts — and at Oktoberfest, Oct 4 at Zarpe",
+      "availability_es": "En tap en el taproom mientras dure — y en el Oktoberfest, 4 de oct en Zarpe",
+      "collab": "Potrero Brewing Co.",
+      "released": "2026-09-28",
+      "color": "#d4940f",
+      "image": "/img/releases/festbier.jpg"
+    }
+  ]
+}

@@ -1,0 +1,810 @@
+{
+  "version": 2.45,
+  "settings": {
+    "pageSize": "letter",
+    "taproomLabel": "TAPROOM:",
+    "taproomHours": "NOON–5PM DAILY",
+    "phone": "+506 8733 7046",
+    "location": "3KM W OF DANIEL ODUBER AIRPORT",
+    "footerAutoFit": true,
+    "language": "en",
+    "translationContactEmail": "",
+    "headerSlots": [
+      {
+        "type": "text",
+        "text": "Costa Ricas Finest Craft Beer",
+        "image": "",
+        "rotation": -14
+      },
+      {
+        "type": "logo",
+        "text": "",
+        "image": "",
+        "rotation": 0
+      },
+      {
+        "type": "text",
+        "text": "Costa Ricas Finest Craft Beer",
+        "image": "",
+        "rotation": 14
+      }
+    ],
+    "sizesByPageSize": {
+      "letter": {
+        "iconScale": 0.76,
+        "statsScale": 0.81,
+        "watermarkScale": 1.66,
+        "watermarkOpacity": 0.95,
+        "taproomFontSize": 13.5,
+        "phoneFontSize": 15,
+        "locationFontSize": 20,
+        "globalDescriptionFontSize": 16,
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "headerSlotScales": [
+          0.45,
+          0.7,
+          0.45
+        ]
+      },
+      "4x6": {
+        "iconScale": 1,
+        "statsScale": 1,
+        "watermarkScale": 1.33,
+        "watermarkOpacity": 0.83,
+        "taproomFontSize": 16,
+        "phoneFontSize": 20,
+        "locationFontSize": 28,
+        "globalDescriptionFontSize": 16,
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "headerSlotScales": [
+          1,
+          0.67,
+          1
+        ]
+      }
+    },
+    "logoScale": 0.67,
+    "locationTranslations": {
+      "en": "3KM W OF DANIEL ODUBER AIRPORT",
+      "es": "3 KM O DEL AEROPUERTO DANIEL ODUBER"
+    }
+  },
+  "items": [
+    {
+      "type": "divider",
+      "text": "BEERS",
+      "fontSize": 18
+    },
+    {
+      "type": "beer",
+      "name": "America IPA",
+      "style": "IPA",
+      "sg": "1.058",
+      "fg": "1.012",
+      "abv": "6.0",
+      "ibu": "53",
+      "glutenFree": false,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#19459c",
+      "outlineEnabled": true,
+      "outlineWidth": 0.7,
+      "icon": "hop",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Dry hopped with a generous amount of Citra, Mosaic and Galaxy hops. Intensely fruity and juicy.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "America IPA",
+          "description": "Dry hopped with a generous amount of Citra, Mosaic and Galaxy hops. Intensely fruity and juicy."
+        },
+        "es": {
+          "name": "IPA Americana",
+          "description": "Dry hop con una generosa cantidad de lúpulos Citra, Mosaic y Galaxy. Intensamente frutal y jugosa."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "WC IPA",
+      "style": "IPA",
+      "sg": "1.057",
+      "fg": "1.007",
+      "abv": "6.6",
+      "ibu": "50",
+      "glutenFree": false,
+      "isNew": true,
+      "newBadgeStyle": "outline",
+      "color": "#36820d",
+      "outlineEnabled": true,
+      "outlineWidth": 0.9,
+      "icon": "hop",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Crisp, piney, and packed with bright citrus notes. Clean malt support lets old-school West Coast hops shine bright.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "WC IPA",
+          "description": "Crisp, piney, and packed with bright citrus notes. Clean malt support lets old-school West Coast hops shine bright."
+        },
+        "es": {
+          "name": "",
+          "description": ""
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "Blonde Ale",
+      "style": "Blonde Ale",
+      "sg": "1.050",
+      "fg": "1.011",
+      "abv": "5.1",
+      "ibu": "32",
+      "glutenFree": false,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#b5a600",
+      "outlineEnabled": true,
+      "outlineWidth": 1.6,
+      "icon": "citrus",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Dry hopped with a single hop variety, Citra. Orange peel and tropical fruit flavors will tickle your tongue.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Blonde Ale",
+          "description": "Dry hopped with a single hop variety, Citra. Orange peel and tropical fruit flavors will tickle your tongue."
+        },
+        "es": {
+          "name": "Ale Rubia",
+          "description": "Lúpulo seco con una sola variedad de lúpulo, Citra. La cáscara de naranja y los sabores de frutas tropicales te harán cosquillas en la lengua."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "Monopils",
+      "style": "Pilsner",
+      "sg": "1.052",
+      "fg": "1.012",
+      "abv": "5.3",
+      "ibu": "31",
+      "glutenFree": false,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#87531f",
+      "outlineEnabled": true,
+      "outlineWidth": 0.6,
+      "icon": "pilsner",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Refreshing German pilsner with delicate floral and spicy noble hop aromas over a clean malt backbone.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Monopils",
+          "description": "Refreshing German pilsner with delicate floral and spicy noble hop aromas over a clean malt backbone."
+        },
+        "es": {
+          "name": "Monopils",
+          "description": "Pilsner alemana refrescante con delicados aromas florales y especiados de lúpulos nobles sobre una base limpia de malta."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "Festbier",
+      "style": "Festbier",
+      "sg": "",
+      "fg": "",
+      "abv": "4.5",
+      "ibu": "28",
+      "glutenFree": false,
+      "isNew": true,
+      "newBadgeStyle": "pill",
+      "color": "#d4940f",
+      "outlineEnabled": true,
+      "outlineWidth": 0.8,
+      "icon": "pilsner",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Oktoberfest collaboration with Potrero Brewing Co. A golden, easy-drinking festival lager with soft bready malt and a clean, crisp finish.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Festbier",
+          "description": "Oktoberfest collaboration with Potrero Brewing Co. A golden, easy-drinking festival lager with soft bready malt and a clean, crisp finish."
+        },
+        "es": {
+          "name": "Festbier",
+          "description": "Colaboración de Oktoberfest con Potrero Brewing Co. Una lager de festival dorada y fácil de tomar, con malta suave a pan y un final limpio y fresco."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "NZ Pale Ale",
+      "style": "Pale Ale",
+      "sg": "1.052",
+      "fg": "1.010",
+      "abv": "5.5",
+      "ibu": "40",
+      "glutenFree": false,
+      "isNew": true,
+      "newBadgeStyle": "outline",
+      "color": "#ed7b16",
+      "outlineEnabled": true,
+      "outlineWidth": 0.8,
+      "icon": "leaf",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Crisp malt backbone and balanced bitterness, delivering a juicy, clean finish that showcases Motueka and Citra hops.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "NZ Pale Ale",
+          "description": "Crisp malt backbone and balanced bitterness, delivering a juicy, clean finish that showcases Motueka and Citra hops."
+        },
+        "es": {
+          "name": "Pale Ale NZ",
+          "description": "Base de malta crujiente y amargor equilibrado, con un final jugoso y limpio que destaca los lúpulos Motueka y Citra."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "Vanilla Gorilla Stout",
+      "style": "Stout",
+      "sg": "1.073",
+      "fg": "1.016",
+      "abv": "7.5",
+      "ibu": "32",
+      "glutenFree": false,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#111111",
+      "outlineEnabled": true,
+      "outlineWidth": 0.5,
+      "icon": "vanilla",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": false,
+      "descriptionFontSize": 16,
+      "description": "Notes of roasted malt, dark chocolate, and coffee, finished with natural Madagascar vanilla beans.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Vanilla Gorilla Stout",
+          "description": "Notes of roasted malt, dark chocolate, and coffee, finished with natural Madagascar vanilla beans."
+        },
+        "es": {
+          "name": "Stout Vanilla Gorilla",
+          "description": "Notas de malta tostada, chocolate negro y café, terminadas con granos naturales de vainilla de Madagascar."
+        }
+      }
+    },
+    {
+      "type": "divider",
+      "text": "SOURS",
+      "fontSize": 18
+    },
+    {
+      "type": "beer",
+      "name": "Maracuyá Sour",
+      "style": "Sour Ale",
+      "sg": "",
+      "fg": "",
+      "abv": "4.0",
+      "ibu": "",
+      "glutenFree": false,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#c72025",
+      "outlineEnabled": true,
+      "outlineWidth": 0.5,
+      "icon": "passionfruit",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": true,
+      "descriptionFontSize": 16,
+      "description": "Refreshing sour ale with vibrant maracuyá (passion fruit), balanced by tartness and juicy citrus notes.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Maracuyá Sour",
+          "description": "Refreshing sour ale with vibrant maracuyá (passion fruit), balanced by tartness and juicy citrus notes."
+        },
+        "es": {
+          "name": "Sour de Maracuyá",
+          "description": "Sour ale refrescante con vibrante maracuyá (fruta de la pasión), equilibrada con acidez y notas cítricas jugosas."
+        }
+      }
+    },
+    {
+      "type": "divider",
+      "text": "CIDERS",
+      "fontSize": 18
+    },
+    {
+      "type": "beer",
+      "name": "Cas Cider",
+      "style": "Cider",
+      "sg": "",
+      "fg": "",
+      "abv": "4.5",
+      "ibu": "",
+      "glutenFree": true,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#587b20",
+      "outlineEnabled": true,
+      "outlineWidth": 0.7,
+      "icon": "apple",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": true,
+      "descriptionFontSize": 16,
+      "description": "Made with 100% cas fruit, giving it the signature tartness of Costa Rica’s beloved fruit in a cider.",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Cas Cider",
+          "description": "Made with 100% cas fruit, giving it the signature tartness of Costa Rica’s beloved fruit in a cider."
+        },
+        "es": {
+          "name": "Sidra de Cas",
+          "description": "Hecha con 100% fruta de cas, aportando la acidez característica de una de las frutas más queridas de Costa Rica en una sidra."
+        }
+      }
+    },
+    {
+      "type": "beer",
+      "name": "Maracas Cider",
+      "style": "Cider",
+      "sg": "",
+      "fg": "",
+      "abv": "4.5",
+      "ibu": "",
+      "glutenFree": true,
+      "isNew": false,
+      "newBadgeStyle": "pill",
+      "color": "#762091",
+      "outlineEnabled": true,
+      "outlineWidth": 0.8,
+      "icon": "passionfruit",
+      "customIcon": "",
+      "hideIcon": false,
+      "hideAbv": false,
+      "hideIbu": true,
+      "descriptionFontSize": 16,
+      "description": "We take our refreshing Cas Cider and add more maracuyá (passion fruit).",
+      "language": "en",
+      "translations": {
+        "en": {
+          "name": "Maracas Cider",
+          "description": "We take our refreshing Cas Cider and add more maracuyá (passion fruit)."
+        },
+        "es": {
+          "name": "Sidra Maracuyá",
+          "description": "Tomamos nuestra refrescante Sidra Cas y añadimos más maracuyá."
+        }
+      }
+    },
+    {
+      "type": "text",
+      "columns": [
+        {
+          "title": "Cocktails",
+          "body": "We have spirts and mixers for cocktails."
+        },
+        {
+          "title": "Merchandise",
+          "body": "T-Shirts, Tank Tops, Stickers, Koozies.\nBeers ToGo."
+        },
+        {
+          "title": "WiFi",
+          "body": "SSID: MHB Guest\nPW: Costarica"
+        }
+      ]
+    }
+  ],
+  "savedBeverages": [
+    {
+      "id": "8b5e43a6-a979-4793-82f1-d34015e0ecac",
+      "savedAt": "2026-07-15T03:12:32.043Z",
+      "item": {
+        "type": "beer",
+        "name": "America IPA",
+        "style": "IPA",
+        "sg": "1.058",
+        "fg": "1.012",
+        "abv": "6.0",
+        "ibu": "53",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#19459c",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "hop",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Dry hopped with a generous amount of Citra, Mosaic and Galaxy hops. Intensely fruity and juicy.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "America IPA",
+            "description": "Dry hopped with a generous amount of Citra, Mosaic and Galaxy hops. Intensely fruity and juicy."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "d5fec3da-6d36-4a8d-8409-ef258387686c",
+      "savedAt": "2026-07-15T00:42:12.271Z",
+      "item": {
+        "type": "beer",
+        "name": "Blonde Ale",
+        "style": "Blonde Ale",
+        "sg": "1.050",
+        "fg": "1.011",
+        "abv": "5.1",
+        "ibu": "32",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#b5a600",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "citrus",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Dry hopped with a single hop variety, Citra. Orange peel and tropical fruit flavors will tickle your tongue.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Blonde Ale",
+            "description": "Dry hopped with a single hop variety, Citra. Orange peel and tropical fruit flavors will tickle your tongue."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "1d105bfc-9cb2-4279-bb52-a73d7f0a9c04",
+      "savedAt": "2026-07-15T00:42:12.272Z",
+      "item": {
+        "type": "beer",
+        "name": "Cas Cider",
+        "style": "Cider",
+        "sg": "",
+        "fg": "",
+        "abv": "4.5",
+        "ibu": "",
+        "glutenFree": true,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#587b20",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "apple",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Made with 100% cas fruit, giving it the signature tartness of Costa Rica’s beloved fruit in a cider.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Cas Cider",
+            "description": "Made with 100% cas fruit, giving it the signature tartness of Costa Rica’s beloved fruit in a cider."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "8259b11f-1985-4c25-8460-65e7ed21b0e6",
+      "savedAt": "2026-07-15T02:56:26.517Z",
+      "item": {
+        "type": "beer",
+        "name": "Maracas Cider",
+        "style": "Cider",
+        "sg": "",
+        "fg": "",
+        "abv": "4.5",
+        "ibu": "",
+        "glutenFree": true,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#762091",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "passionfruit",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "We take our refreshing Cas Cider and back sweeten it with more maracuyá (passion fruit).",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Maracas Cider",
+            "description": "We take our refreshing Cas Cider and back sweeten it with more maracuyá (passion fruit)."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "9f5a2879-cdd5-48e5-9555-0800ec449d53",
+      "savedAt": "2026-07-15T00:42:12.271Z",
+      "item": {
+        "type": "beer",
+        "name": "Maracuyá Sour",
+        "style": "Sour Ale",
+        "sg": "",
+        "fg": "",
+        "abv": "4.0",
+        "ibu": "",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#c72025",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "passionfruit",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Refreshing sour ale with vibrant maracuyá (passion fruit), balanced by tartness and juicy citrus notes.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Maracuyá Sour",
+            "description": "Refreshing sour ale with vibrant maracuyá (passion fruit), balanced by tartness and juicy citrus notes."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "db50d074-30f9-43fa-a30e-71790bde04d1",
+      "savedAt": "2026-07-15T00:42:12.271Z",
+      "item": {
+        "type": "beer",
+        "name": "Monopils",
+        "style": "Pilsner",
+        "sg": "1.052",
+        "fg": "1.012",
+        "abv": "5.3",
+        "ibu": "31",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#87531f",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "pilsner",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Refreshing German pilsner with delicate floral and spicy noble hop aromas over a clean malt backbone.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Monopils",
+            "description": "Refreshing German pilsner with delicate floral and spicy noble hop aromas over a clean malt backbone."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "9f64917d-a78b-40ec-bd2d-97c723cd15a5",
+      "savedAt": "2026-07-15T00:42:12.271Z",
+      "item": {
+        "type": "beer",
+        "name": "NZ Pale Ale",
+        "style": "Pale Ale",
+        "sg": "1.052",
+        "fg": "1.010",
+        "abv": "5.5",
+        "ibu": "40",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#ed7b16",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "leaf",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.25,
+        "description": "Crisp malt backbone and balanced bitterness, delivering a juicy, clean finish that showcases Motueka and Citra hops.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "NZ Pale Ale",
+            "description": "Crisp malt backbone and balanced bitterness, delivering a juicy, clean finish that showcases Motueka and Citra hops."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "c28218ec-7117-43c7-a17d-ecaaf68f5e39",
+      "savedAt": "2026-07-15T00:42:12.271Z",
+      "item": {
+        "type": "beer",
+        "name": "Vanilla Gorilla Stout",
+        "style": "Stout",
+        "sg": "1.073",
+        "fg": "1.016",
+        "abv": "7.5",
+        "ibu": "32",
+        "glutenFree": false,
+        "isNew": false,
+        "newBadgeStyle": "pill",
+        "color": "#111111",
+        "outlineEnabled": true,
+        "outlineWidth": 1.5,
+        "icon": "vanilla",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 15.75,
+        "description": "Notes of roasted malt, dark chocolate, and coffee, finished with natural Madagascar vanilla beans.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Vanilla Gorilla Stout",
+            "description": "Notes of roasted malt, dark chocolate, and coffee, finished with natural Madagascar vanilla beans."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "01b5b258-3f07-4165-84fa-adb51d5b6090",
+      "savedAt": "2026-08-24T22:55:54.136Z",
+      "item": {
+        "type": "beer",
+        "name": "WC IPA",
+        "style": "IPA",
+        "sg": "1.057",
+        "fg": "1.007",
+        "abv": "6.6",
+        "ibu": "50",
+        "glutenFree": false,
+        "isNew": true,
+        "newBadgeStyle": "outline",
+        "color": "#36820d",
+        "outlineEnabled": true,
+        "outlineWidth": 0.9,
+        "icon": "hop",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 16,
+        "description": "Crisp, piney, and packed with bright citrus notes. Clean malt support lets old-school West Coast hops shine bright.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "WC IPA",
+            "description": "Crisp, piney, and packed with bright citrus notes. Clean malt support lets old-school West Coast hops shine bright."
+          },
+          "es": {
+            "name": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    {
+      "id": "festbier-2026",
+      "savedAt": "2026-09-28T18:10:00.000Z",
+      "item": {
+        "type": "beer",
+        "name": "Festbier",
+        "style": "Festbier",
+        "sg": "",
+        "fg": "",
+        "abv": "4.5",
+        "ibu": "28",
+        "glutenFree": false,
+        "isNew": true,
+        "newBadgeStyle": "pill",
+        "color": "#d4940f",
+        "outlineEnabled": true,
+        "outlineWidth": 0.8,
+        "icon": "pilsner",
+        "customIcon": "",
+        "hideIcon": false,
+        "hideAbv": false,
+        "hideIbu": false,
+        "descriptionFontSize": 16,
+        "description": "Oktoberfest collaboration with Potrero Brewing Co. A golden, easy-drinking festival lager with soft bready malt and a clean, crisp finish.",
+        "language": "en",
+        "translations": {
+          "en": {
+            "name": "Festbier",
+            "description": "Oktoberfest collaboration with Potrero Brewing Co. A golden, easy-drinking festival lager with soft bready malt and a clean, crisp finish."
+          },
+          "es": {
+            "name": "Festbier",
+            "description": "Colaboración de Oktoberfest con Potrero Brewing Co. Una lager de festival dorada y fácil de tomar, con malta suave a pan y un final limpio y fresco."
+          }
+        }
+      }
+    }
+  ]
+}

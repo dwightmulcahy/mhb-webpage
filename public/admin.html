@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Staff Admin · Monkey Head</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/styles.css">
+<style>
+  body { background: var(--cream-2); }
+  main { padding: 28px 0 120px; }
+  .login { max-width: 360px; margin: 80px auto; background: #fff; padding: 28px; border-radius: var(--radius); }
+  input, textarea, select { width: 100%; font: inherit; padding: 9px 11px; border: 1px solid #d6ccb4; border-radius: 8px; background: #fff; }
+  textarea { resize: vertical; min-height: 60px; }
+  label { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+  button { font: 700 .92rem var(--body); padding: 10px 16px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; cursor: pointer; }
+  button.primary { background: var(--gold); border-color: var(--gold); }
+  button.danger { border-color: #c8202a; color: #c8202a; }
+  button.mv { padding: 6px 11px; }
+  .row { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border-left: 8px solid var(--c); display: grid; gap: 12px; grid-template-columns: 2fr 1.2fr .6fr .6fr .7fr .8fr .8fr; align-items: end; }
+  .row.off { opacity: .55; }
+  .row .desc { grid-column: 1 / 5; }
+  .row .es { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 3fr; gap: 12px; }
+  .row.div, .row.txt { grid-template-columns: 1fr; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .kind { font: 700 .7rem var(--body); letter-spacing: .12em; color: var(--muted); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 18px; }
+  .toolbar select { width: auto; }
+  .row > * { min-width: 0; }
+  .row .flags { grid-column: 5 / -1; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .row .flags label { display: flex; gap: 6px; align-items: center; margin: 0; text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--ink); }
+  .row .flags input { width: auto; }
+  .row .ctrl { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: space-between; }
+  .toggle { font-weight: 700; }
+  .toggle.on { background: #2fa84f; border-color: #2fa84f; color: #fff; }
+  @media (max-width: 760px) { .row { grid-template-columns: 1fr 1fr; } .row .desc, .row .flags, .row .es { grid-column: 1 / -1; } .row .es { grid-template-columns: 1fr; } }
+  .bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--ink); color: var(--cream); padding: 12px 0; }
+  .bar .wrap { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #msg { font-size: .9rem; }
+  input[type=color] { padding: 2px; height: 40px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tabs button.on { background: var(--ink); color: var(--cream); }
+  .ed { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border-left: 8px solid var(--gold); display: grid; gap: 12px; grid-template-columns: 140px 1fr; }
+  .ed .thumb { width: 140px; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: var(--cream-2); display: block; }
+  .ed .f { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); align-items: end; }
+  .ed .f > * { min-width: 0; }
+  .ed .f .w2 { grid-column: span 2; } .ed .f .w4 { grid-column: 1 / -1; }
+  .ed .f .chk label { display: flex; gap: 8px; align-items: center; text-transform: none; letter-spacing: 0; font-size: .95rem; color: var(--ink); padding: 10px 0; }
+  .ed .f .chk input { width: auto; }
+  .ed.past { opacity: .5; }
+  .ed textarea { min-height: 96px; }
+  .ed .side button { width: 140px; margin-top: 6px; }
+  @media (max-width: 760px) { .ed { grid-template-columns: 1fr; } .ed .f { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<nav class="nav"><div class="wrap"><a class="brand" href="/"><img src="/img/mark.png" alt="">Staff Admin</a><ul><li class="keep"><a href="/board" target="_blank">TV board</a></li><li class="keep"><a href="#" id="logout">Log out</a></li></ul></div></nav>
+
+<div class="login" id="login" hidden>
+  <h2 style="font-size:2.2rem;margin-bottom:14px">Staff login</h2>
+  <form id="loginForm"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required><p id="loginErr" style="color:#c8202a;min-height:1.2em"></p><button class="primary" type="submit">Log in</button></form>
+</div>
+
+<main id="app" hidden>
+  <div class="wrap">
+    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="social">Follow Us</button></div>
+    <div id="tabTaps">
+    <p style="color:var(--muted);margin-top:0">Uses the <b>TapListBuilder</b> JSON format. Import a file exported from TapListBuilder, or edit here and Export to take it back. Items in the list = on tap; <b>Off tap</b> moves a beer to Saved beverages. Changes go live on <b>Save &amp; publish</b>.</p>
+    <div class="toolbar">
+      <span><input type="file" id="importFile" accept=".json,application/json" hidden><button type="button" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button></span>
+      <button type="button" id="export">⬇ Export JSON</button>
+      <span style="flex:1"></span>
+      <select id="saved"></select><button type="button" id="addSaved">+ Put on tap</button>
+    </div>
+    <div id="rows"></div>
+    <div class="toolbar"><button id="add">+ New beer</button><button id="addDiv">+ Divider</button></div>
+    </div>
+    <div id="tabColl" hidden>
+      <p id="collHelp" style="color:var(--muted);margin-top:0"></p>
+      <div id="collRows"></div>
+      <div class="toolbar"><button id="addColl">+ Add</button></div>
+    </div>
+  </div>
+</main>
+
+<div class="bar" id="bar" hidden><div class="wrap"><span id="msg">No changes</span><div style="display:flex;gap:8px"><button id="revert" style="background:transparent;color:var(--cream);border-color:var(--cream)">Revert</button><button class="primary" id="save">Save &amp; publish</button></div></div></div>
+
+<script src="/taps.js"></script>
+<script src="/schemas.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = MHB.esc;
+let token = sessionStorage.getItem('mhb_token') || '';
+let doc = null, saved = '';
+const ICON_NAMES = Object.keys(MHB.ICONS);
+
+const blankBeer = () => ({ type: 'beer', name: 'New Beer', style: '', sg: '', fg: '', abv: '', ibu: '', glutenFree: false, isNew: true, newBadgeStyle: 'pill', color: '#e8a317', outlineEnabled: true, outlineWidth: 1, icon: 'hop', customIcon: '', hideIcon: false, hideAbv: false, hideIbu: false, descriptionFontSize: 16, description: '', language: 'en', translations: { en: { name: '', description: '' }, es: { name: '', description: '' } } });
+
+const inp = (path, label, val, type = 'text', extra = '') => `<div><label>${label}</label><input data-p="${path}" type="${type}" value="${esc(val ?? '')}" ${extra}></div>`;
+
+function beerRow(it, i) {
+  const es = (it.translations && it.translations.es) || {};
+  return `<div class="row" style="--c:${MHB.safeColor(it.color)}" data-i="${i}">
+    ${inp('name', 'Name', it.name)}${inp('style', 'Style', it.style)}${inp('abv', 'ABV %', it.abv, 'text', 'inputmode="decimal"')}${inp('ibu', 'IBU', it.ibu, 'text', 'inputmode="numeric"')}${inp('sg', 'OG / SG', it.sg, 'text', 'placeholder="1.050"')}
+    <div><label>Icon</label><select data-p="icon">${ICON_NAMES.map((n) => `<option ${n === it.icon ? 'selected' : ''}>${n}</option>`).join('')}${it.icon && !ICON_NAMES.includes(it.icon) ? `<option selected>${esc(it.icon)}</option>` : ''}</select></div>
+    ${inp('color', 'Color', /^#[0-9a-f]{6}$/i.test(it.color) ? it.color : '#141210', 'color')}
+    <div class="desc"><label>Description (EN)</label><textarea data-p="description">${esc(it.description)}</textarea></div>
+    <div class="flags">
+      <label><input type="checkbox" data-p="glutenFree" ${it.glutenFree ? 'checked' : ''}> Gluten free</label>
+      <label><input type="checkbox" data-p="isNew" ${it.isNew ? 'checked' : ''}> New</label>
+      <label><input type="checkbox" data-p="hideIbu" ${it.hideIbu ? 'checked' : ''}> Hide IBU</label>
+    </div>
+    <div class="es">${inp('translations.es.name', 'Nombre (ES)', es.name)}<div><label>Descripción (ES)</label><textarea data-p="translations.es.description" style="min-height:42px">${esc(es.description)}</textarea></div></div>
+    <div class="ctrl"><button class="toggle on" data-act="off" title="Move to saved beverages">● On tap</button><span>${moveBtns}</span></div>
+  </div>`;
+}
+const moveBtns = '<button class="mv" data-act="up" title="Move up">↑</button> <button class="mv" data-act="down" title="Move down">↓</button> <button class="danger mv" data-act="del" title="Delete">✕</button>';
+
+function render() {
+  $('#rows').innerHTML = doc.items.map((it, i) => {
+    if (it.type === 'beer') return beerRow(it, i);
+    if (it.type === 'divider') return `<div class="row div" style="--c:#9a958c" data-i="${i}"><div class="kind">DIVIDER</div>${inp('text', 'Heading', it.text)}<div class="ctrl"><span></span><span>${moveBtns}</span></div></div>`;
+    if (it.type === 'text') return `<div class="row txt" style="--c:#9a958c" data-i="${i}"><div class="kind">INFO COLUMNS</div><div class="cols">${it.columns.map((c, j) => `<div>${inp(`columns.${j}.title`, 'Title', c.title)}<label style="margin-top:8px">Text</label><textarea data-p="columns.${j}.body">${esc(c.body)}</textarea></div>`).join('')}</div><div class="ctrl"><span></span><span>${moveBtns}</span></div></div>`;
+    return '';
+  }).join('');
+  const lib = doc.savedBeverages || [];
+  $('#saved').innerHTML = lib.length ? lib.map((s, j) => `<option value="${j}">${esc(s.item.name)}</option>`).join('') : '<option value="">No saved beverages</option>';
+  dirty();
+}
+
+let tab = 'taps';
+const COLL = {};   // name -> { doc, saved }
+const collDirty = (n) => COLL[n] && JSON.stringify(COLL[n].doc) !== COLL[n].saved;
+function dirty() {
+  if (tab !== 'taps') {
+    const c = COLL[tab]; if (!c) return;
+    const sc = MHB_SCHEMAS[tab], n = c.doc[sc.listKey].length;
+    const d = collDirty(tab);
+    $('#msg').textContent = d ? `Unsaved ${sc.label} changes` : `Published · ${tab === 'events' ? c.doc.events.filter((e) => e.date >= todayCR).length + ' upcoming event(s)' : n + ' item(s)'}`;
+    $('#save').disabled = !d; $('#revert').disabled = !d; return;
+  }
+  const d = JSON.stringify(doc) !== saved;
+  $('#msg').textContent = d ? 'Unsaved changes' : `Published · ${MHB.beers(doc).length} on tap`;
+  $('#save').disabled = !d; $('#revert').disabled = !d;
+}
+document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  $('#tabTaps').hidden = tab !== 'taps'; $('#tabColl').hidden = tab === 'taps';
+  if (tab !== 'taps') renderColl();
+  dirty();
+});
+
+// ---------- generic editor for events / places / merch (driven by schemas.js) ----------
+const todayCR = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Costa_Rica' }).format(new Date());
+function field(f, v) {
+  const w = f.w === 2 ? 'w2' : f.w === 4 ? 'w4' : '';
+  if (f.type === 'bool') return `<div class="chk ${w}"><label><input type="checkbox" data-k="${f.k}" ${v ? 'checked' : ''}> ${esc(f.label)}</label></div>`;
+  if (f.type === 'textarea') return `<div class="${w}"><label>${esc(f.label)}</label><textarea data-k="${f.k}">${esc(v)}</textarea></div>`;
+  if (f.type === 'select') return `<div class="${w}"><label>${esc(f.label)}</label><select data-k="${f.k}">${f.options.map((o) => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+  const type = { date: 'date', time: 'time', url: 'url' }[f.type] || 'text';
+  const ph = f.ph || (f.type === 'url' ? 'https://' : '');
+  return `<div class="${w}"><label>${esc(f.label)}</label><input data-k="${f.k}" type="${type}" value="${esc(v ?? '')}" ${ph ? `placeholder="${esc(ph)}"` : ''}></div>`;
+}
+function renderColl() {
+  const sc = MHB_SCHEMAS[tab], c = COLL[tab]; if (!c) return;
+  const list = c.doc[sc.listKey];
+  $('#collHelp').textContent = sc.help;
+  $('#addColl').textContent = `+ Add ${{ events: 'event', places: 'place', merch: 'merch item', social: 'link', releases: 'release' }[tab]}`;
+  const imgField = sc.fields.find((f) => f.type === 'image');
+  $('#collRows').innerHTML = list.map((row, i) => {
+    const past = tab === 'events' && row.date && row.date < todayCR;
+    return `<div class="ed ${past ? 'past' : ''}" data-i="${i}"${imgField ? '' : ' style="grid-template-columns:1fr"'}>
+      <div class="side"${imgField ? '' : ' hidden'}>
+        ${imgField ? `${row.image ? `<img class="thumb" src="${esc(row.image)}" alt="">` : '<div class="thumb"></div>'}
+        <input type="file" accept="image/jpeg,image/png,image/webp" hidden data-up>
+        <button type="button" class="mv" data-act="upload">Upload ${esc(sc.imageLabel.toLowerCase())}</button>
+        ${row.image ? '<button type="button" class="mv" data-act="noimg">Remove image</button>' : ''}` : ''}
+      </div>
+      <div class="f">
+        ${sc.fields.filter((f) => f.type !== 'image').map((f) => field(f, row[f.k])).join('')}
+        <div class="w4" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span>${tab === 'events' ? '' : moveBtns.replace(/ <button class="danger mv".*$/, '')}</span>
+          <span>${past ? '<span style="color:var(--muted);margin-right:10px">Past — hidden on site</span>' : ''}<button class="danger mv" data-act="del">✕ Delete</button></span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted)">Nothing here yet.</p>';
+  dirty();
+}
+$('#collRows').addEventListener('input', (e) => {
+  const k = e.target.dataset.k; if (!k) return;
+  const sc = MHB_SCHEMAS[tab];
+  COLL[tab].doc[sc.listKey][+e.target.closest('.ed').dataset.i][k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+  dirty();
+});
+$('#collRows').addEventListener('click', (e) => {
+  const act = e.target.dataset.act; if (!act) return;
+  const sc = MHB_SCHEMAS[tab], list = COLL[tab].doc[sc.listKey];
+  const card = e.target.closest('.ed'), i = +card.dataset.i;
+  if (act === 'del' && confirm(`Delete "${list[i][sc.titleField]}"?`)) list.splice(i, 1);
+  if (act === 'noimg') list[i].image = '';
+  if (act === 'up' && i > 0) [list[i - 1], list[i]] = [list[i], list[i - 1]];
+  if (act === 'down' && i < list.length - 1) [list[i + 1], list[i]] = [list[i], list[i + 1]];
+  if (act === 'upload') return card.querySelector('[data-up]').click();
+  renderColl();
+});
+$('#collRows').addEventListener('change', async (e) => {
+  if (!e.target.matches('[data-up]') || !e.target.files[0]) return;
+  const f = e.target.files[0], i = +e.target.closest('.ed').dataset.i, sc = MHB_SCHEMAS[tab];
+  $('#msg').textContent = 'Uploading…';
+  const r = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': f.type, Authorization: 'Bearer ' + token }, body: f });
+  const data = await r.json();
+  if (!r.ok) return ($('#msg').textContent = 'Upload failed: ' + data.error);
+  COLL[tab].doc[sc.listKey][i].image = data.path; renderColl();
+});
+$('#addColl').onclick = () => {
+  const sc = MHB_SCHEMAS[tab], row = {};
+  sc.fields.forEach((f) => { row[f.k] = f.type === 'bool' ? !!f.def : (f.def || ''); });
+  COLL[tab].doc[sc.listKey].push({ ...row, ...sc.blank() });
+  renderColl(); scrollTo(0, document.body.scrollHeight);
+};
+
+function setPath(obj, path, val) {
+  const ks = path.split('.'); let o = obj;
+  ks.slice(0, -1).forEach((k) => { if (o[k] == null) o[k] = {}; o = o[k]; });
+  o[ks.at(-1)] = val;
+}
+
+$('#rows').addEventListener('input', (e) => {
+  const p = e.target.dataset.p; if (!p) return;
+  const row = e.target.closest('.row'), it = doc.items[+row.dataset.i];
+  setPath(it, p, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
+  if (it.type === 'beer' && (p === 'name' || p === 'description')) {   // keep EN translation in sync with main fields
+    setPath(it, 'translations.en.' + p, e.target.value);
+  }
+  if (p === 'color') row.style.setProperty('--c', e.target.value);
+  dirty();
+});
+
+function saveToLibrary(it) {
+  doc.savedBeverages = doc.savedBeverages || [];
+  const k = doc.savedBeverages.findIndex((s) => s.item.name.toLowerCase() === it.name.toLowerCase());
+  const entry = { id: k >= 0 ? doc.savedBeverages[k].id : crypto.randomUUID(), savedAt: new Date().toISOString(), item: JSON.parse(JSON.stringify(it)) };
+  if (k >= 0) doc.savedBeverages[k] = entry; else doc.savedBeverages.push(entry);
+}
+
+$('#rows').addEventListener('click', (e) => {
+  const act = e.target.dataset.act; if (!act) return;
+  const i = +e.target.closest('.row').dataset.i, it = doc.items;
+  if (act === 'up' && i > 0) [it[i - 1], it[i]] = [it[i], it[i - 1]];
+  if (act === 'down' && i < it.length - 1) [it[i + 1], it[i]] = [it[i], it[i + 1]];
+  if (act === 'off') { saveToLibrary(it[i]); it.splice(i, 1); }
+  if (act === 'del' && confirm('Delete this item? (Beers are not added to Saved beverages)')) it.splice(i, 1);
+  render();
+});
+
+$('#addSaved').onclick = () => {
+  const j = $('#saved').value; if (j === '') return;
+  const item = JSON.parse(JSON.stringify(doc.savedBeverages[+j].item));
+  const lastBeer = doc.items.map((x) => x.type).lastIndexOf('beer');
+  doc.items.splice(lastBeer + 1, 0, item); render();
+};
+$('#add').onclick = () => { doc.items.push(blankBeer()); render(); scrollTo(0, document.body.scrollHeight); };
+$('#addDiv').onclick = () => { doc.items.push({ type: 'divider', text: 'NEW SECTION', fontSize: 18 }); render(); scrollTo(0, document.body.scrollHeight); };
+$('#revert').onclick = () => { if (tab !== 'taps') { COLL[tab].doc = JSON.parse(COLL[tab].saved); renderColl(); } else { doc = JSON.parse(saved); render(); } };
+
+$('#importFile').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (!Array.isArray(j.items)) throw new Error('No "items" array — is this a TapListBuilder export?');
+    doc = j; render(); $('#msg').textContent = `Imported ${f.name} — review, then Save & publish`;
+  } catch (err) { alert('Import failed: ' + err.message); }
+  e.target.value = '';
+};
+$('#export').onclick = () => {
+  const out = { ...doc }; delete out.publishedAt;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
+  const d = new Date(), mmddyyyy = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + d.getFullYear();
+  a.download = `mhb-fullmenu-${mmddyyyy}.json`; a.click(); URL.revokeObjectURL(a.href);
+};
+
+$('#save').onclick = async () => {
+  $('#msg').textContent = 'Saving…';
+  const coll = tab !== 'taps';
+  const r = await fetch('/api/' + tab, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(coll ? COLL[tab].doc : doc) });
+  if (r.status === 401) return logout();
+  const data = await r.json();
+  if (!r.ok) return ($('#msg').textContent = 'Error: ' + data.error);
+  if (coll) { COLL[tab] = { doc: data, saved: JSON.stringify(data) }; renderColl(); }
+  else { doc = data; saved = JSON.stringify(doc); render(); }
+};
+
+async function start() {
+  const r = await fetch('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  if (!r.ok) return logout();
+  $('#login').hidden = true; $('#app').hidden = false; $('#bar').hidden = false;
+  doc = await MHB.load(); saved = JSON.stringify(doc); render();
+  for (const n of Object.keys(MHB_SCHEMAS)) { const d = await MHB.load('/api/' + n); COLL[n] = { doc: d, saved: JSON.stringify(d) }; }
+}
+function logout() { token = ''; sessionStorage.removeItem('mhb_token'); $('#login').hidden = false; $('#app').hidden = true; $('#bar').hidden = true; }
+$('#logout').onclick = (e) => { e.preventDefault(); logout(); };
+$('#loginForm').onsubmit = async (e) => {
+  e.preventDefault(); token = $('#pw').value;
+  const r = await fetch('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  if (!r.ok) return ($('#loginErr').textContent = 'Wrong password');
+  sessionStorage.setItem('mhb_token', token); start();
+};
+window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc) !== saved) || Object.keys(COLL).some(collDirty)) e.preventDefault(); });
+token ? start() : logout();
+</script>
+</body>
+</html>

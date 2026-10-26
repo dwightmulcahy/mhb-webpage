@@ -1,0 +1,19 @@
+{
+  "updated": "2026-09-28T12:00:00.000Z",
+  "places": [
+    {
+      "id": "taproom",
+      "name": "Monkey Head Taproom",
+      "kind": "taproom",
+      "town": "Liberia, Guanacaste",
+      "address": "Ruta 21, 3 km west of Daniel Oduber Airport (LIR), Liberia 50103",
+      "map": "https://www.google.com/maps/search/?api=1&query=Monkey+Head+Brewing&query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI",
+      "website": "",
+      "onTap": true,
+      "cans": true,
+      "note": "The full lineup, straight from the brewhouse. Open daily noon–5 PM.",
+      "note_es": "Toda la lista, directo de la cervecería. Abierto todos los días de mediodía a 5 PM.",
+      "image": ""
+    }
+  ]
+}

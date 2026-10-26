@@ -1,0 +1,14 @@
+services:
+  mhb-web:
+    build: .
+    image: mhb-web:latest
+    container_name: mhb-web
+    restart: unless-stopped
+    ports:
+      - "8088:8080"          # host:container — change 8088 if taken on the QNAP
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      - TZ=America/Costa_Rica
+      - SITE_URL=${SITE_URL:-}   # public address, e.g. https://www.monkeyheadbrewing.com (for SEO links)
+    volumes:
+      - ./data:/data         # taps.json lives here and survives rebuilds

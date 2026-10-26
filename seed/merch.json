@@ -1,0 +1,55 @@
+{
+  "updated": "2026-09-28T12:00:00.000Z",
+  "items": [
+    {
+      "id": "tshirts",
+      "name": "T-Shirts",
+      "name_es": "Camisetas",
+      "price": "",
+      "available": true,
+      "image": "/img/cheyne.jpg",
+      "description": "Soft cotton tees with Monkey Head artwork. Several designs and sizes.",
+      "description_es": "Camisetas de algodón suave con arte de Monkey Head. Varios diseños y tallas."
+    },
+    {
+      "id": "tanks",
+      "name": "Tank Tops",
+      "name_es": "Tank Tops",
+      "price": "",
+      "available": true,
+      "image": "/img/volcano.jpg",
+      "description": "Built for Guanacaste heat — beach-ready tanks in our tropical designs.",
+      "description_es": "Hechas para el calor de Guanacaste — tank tops playeras con nuestros diseños tropicales."
+    },
+    {
+      "id": "stickers",
+      "name": "Stickers",
+      "name_es": "Stickers",
+      "price": "",
+      "available": true,
+      "image": "/img/sticker.jpg",
+      "description": "Pura Birra Mae and other designs for your cooler, board or laptop.",
+      "description_es": "Pura Birra Mae y otros diseños para su hielera, tabla o laptop."
+    },
+    {
+      "id": "koozies",
+      "name": "Koozies",
+      "name_es": "Koozies",
+      "price": "",
+      "available": true,
+      "image": "/img/logo.jpg",
+      "description": "Keep your beer cold a little longer in the tropical sun.",
+      "description_es": "Mantenga su cerveza fría un rato más bajo el sol tropical."
+    },
+    {
+      "id": "togo",
+      "name": "Beer To-Go",
+      "name_es": "Cerveza para llevar",
+      "price": "",
+      "available": true,
+      "image": "/img/can.jpg",
+      "description": "Take your favorites home. Ask at the bar what's available to go today.",
+      "description_es": "Lleve sus favoritas a casa. Pregunte en la barra qué hay para llevar hoy."
+    }
+  ]
+}

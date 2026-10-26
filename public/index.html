@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="page.title">Monkey Head Brewing Co.</title>
+<!--@head-->
+<meta name="theme-color" content="#141210">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="64x64" href="/img/favicon.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="banner" id="banner" role="region" data-i18n-attr="aria-label:banner.next"><!--@banner--></div>
+
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="/img/mark.png" alt="" width="38" height="38">Monkey Head</a>
+    <ul>
+      <li class="keep"><a href="#taps" data-i18n="nav.taps">On Tap</a></li>
+      <li><a href="#events" data-i18n="nav.events">Events</a></li>
+      <li><a href="#find" data-i18n="nav.find">Find Us</a></li>
+      <li><a href="#merch" data-i18n="nav.merch">Merch</a></li>
+      <li><a href="#visit" data-i18n="nav.visit">Visit</a></li>
+      <li class="keep"><a class="lang-btn" id="langBtn" href="/es" hreflang="es" data-i18n="lang.switch">Español</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" data-i18n="hero.eyebrow"></div>
+      <h1><span class="sr-only">Monkey Head Brewing Co. — </span>Pura Birra <span class="gold">Mae.</span></h1>
+      <p data-i18n="hero.lead"></p>
+      <div class="btns">
+        <a class="btn primary" href="#taps" data-i18n="hero.cta1"></a>
+        <a class="btn ghost" href="#visit" data-i18n="hero.cta2"></a>
+      </div>
+      <div class="facts">
+        <div>2015<small data-i18n="fact.est"></small></div>
+        <div>7 BBL<small data-i18n="fact.bbl"></small></div>
+        <div>12–5<small data-i18n="fact.open"></small></div>
+      </div>
+    </div>
+    <div class="logo-swap" id="logoSwap">
+      <div class="logo-inner">
+        <div class="logo-face logo-front">
+          <img class="hero-logo" src="/img/logo-og-white.png" alt="Monkey Head Brewing Co. logo — Est. 2015, Costa Rica" width="700" height="428" fetchpriority="high">
+          <button class="face-hit" type="button" data-i18n-attr="aria-label:logo.swap;title:logo.swap"></button>
+        </div>
+        <button class="logo-face logo-back" type="button" data-i18n-attr="aria-label:logo.swap" tabindex="-1">
+          <img src="/img/logo-new.jpg" alt="Monkey Head Brewing chimp logo" width="800" height="800" loading="lazy">
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="release" id="new" aria-labelledby="rel-h">
+  <div class="wrap" id="releaseBox"><!--@release--></div>
+</section>
+
+<section id="taps" class="taps-sec">
+  <div class="wrap">
+    <div class="tap-head">
+      <div>
+        <div class="eyebrow" data-i18n="taps.eyebrow"></div>
+        <h2 data-i18n="taps.title"></h2>
+      </div>
+      <div class="live" id="updated"><!--@updated--></div>
+    </div>
+    <div class="frame"><div class="chalkboard" id="board"><!--@board--></div></div>
+  </div>
+</section>
+
+<section class="more" id="more">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="more.eyebrow"></div>
+    <h2 data-i18n="more.title"></h2>
+    <div class="trio">
+      <article><div class="tile" aria-hidden="true"><img src="/img/logo-og-white.png" alt="" loading="lazy" width="700" height="428"></div><h3 data-i18n="more.beer.t"></h3><p data-i18n="more.beer.p"></p></article>
+      <article><img src="/img/cas-cider.jpg" alt="Cas Cider label: monkey in sunglasses with a glass of cider and cas fruit" loading="lazy" width="900" height="900"><h3 data-i18n="more.cider.t"></h3><p data-i18n="more.cider.p"></p></article>
+      <article class="cocktail"><div class="glass" aria-hidden="true"><svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 28h76L60 70z"/><path d="M60 70v30M40 102h40"/><path d="M34 40h52"/><circle cx="86" cy="24" r="12"/><path d="M78 16l16 16"/><path d="M70 12 58 40"/></svg></div><h3 data-i18n="more.cocktail.t"></h3><p data-i18n="more.cocktail.p"></p></article>
+    </div>
+  </div>
+</section>
+
+<section class="events" id="events">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="events.eyebrow"></div>
+    <h2 data-i18n="events.title"></h2>
+    <div id="eventList" class="event-list"><!--@events--></div>
+  </div>
+</section>
+
+<section class="find" id="find">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="find.eyebrow"></div>
+    <h2 data-i18n="find.title"></h2>
+    <p class="lead" data-i18n="find.lead"></p>
+    <div id="placeList" class="place-list"><!--@places--></div>
+  </div>
+</section>
+
+<section class="merch" id="merch">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="merch.eyebrow"></div>
+    <h2 data-i18n="merch.title"></h2>
+    <p class="lead" data-i18n="merch.lead"></p>
+    <div id="merchList" class="merch-grid"><!--@merch--></div>
+    <p class="note" data-i18n="merch.note"></p>
+  </div>
+</section>
+
+<section id="mobile">
+  <div class="wrap split">
+    <img src="/img/mobile-tap.jpg" alt="Monkey Head mobile tap van with six beer taps at an event" loading="lazy" width="1400" height="983">
+    <div>
+      <div class="eyebrow" data-i18n="mobile.eyebrow"></div>
+      <h2 data-i18n="mobile.title"></h2>
+      <p data-i18n="mobile.p"></p>
+      <div class="btns"><a class="btn primary" href="https://wa.me/50687337046" rel="noopener" data-i18n="mobile.cta"></a></div>
+    </div>
+  </div>
+</section>
+
+<section class="about" id="about">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow" data-i18n="about.eyebrow"></div>
+      <h2 data-i18n="about.title"></h2>
+      <p data-i18n="about.p1"></p>
+      <p data-i18n="about.p2"></p>
+    </div>
+    <img src="/img/can.jpg" alt="Black Monkey Head Brewing Co. beer can" loading="lazy" width="792" height="1000">
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="visit.eyebrow"></div>
+    <h2 data-i18n="visit.title"></h2>
+    <div class="cards">
+      <div class="card"><h3 data-i18n="visit.hours"></h3><p data-i18n="visit.hoursP"></p></div>
+      <address class="card"><h3 data-i18n="visit.loc"></h3><p><span data-i18n="visit.locP"></span><br><a href="https://www.google.com/maps/search/?api=1&amp;query=Monkey+Head+Brewing&amp;query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI" target="_blank" rel="noopener" data-i18n="visit.maps"></a></p></address>
+      <address class="card"><h3 data-i18n="visit.contact"></h3><p><a href="tel:+50687337046">+506 8733 7046</a><br><a href="https://wa.me/50687337046" rel="noopener" data-i18n="visit.wa"></a></p></address>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a href="#top" class="foot-logo"><img src="/img/logo-og-white.png" alt="Monkey Head Brewing Co." width="700" height="428" loading="lazy"></a>
+      <p data-i18n="foot.tagline"></p>
+    </div>
+    <nav class="foot-col" aria-labelledby="foot-explore">
+      <h3 id="foot-explore" data-i18n="foot.explore"></h3>
+      <ul>
+        <li><a href="#new" data-i18n="nav.new"></a></li>
+        <li><a href="#taps" data-i18n="nav.taps"></a></li>
+        <li><a href="#more" data-i18n="nav.more"></a></li>
+        <li><a href="#events" data-i18n="nav.events"></a></li>
+        <li><a href="#find" data-i18n="nav.find"></a></li>
+        <li><a href="#merch" data-i18n="nav.merch"></a></li>
+        <li><a href="#mobile" data-i18n="nav.mobile"></a></li>
+        <li><a href="#about" data-i18n="nav.about"></a></li>
+        <li><a href="#visit" data-i18n="nav.visit"></a></li>
+      </ul>
+    </nav>
+    <div class="foot-col">
+      <h3 data-i18n="foot.visit"></h3>
+      <p><span data-i18n="foot.hours"></span><br><span data-i18n="foot.addr"></span></p>
+      <p><a href="https://www.google.com/maps/search/?api=1&amp;query=Monkey+Head+Brewing&amp;query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI" target="_blank" rel="noopener" data-i18n="foot.directions"></a><br><a href="tel:+50687337046">+506 8733 7046</a></p>
+    </div>
+    <div class="foot-col">
+      <h3 data-i18n="foot.follow"></h3>
+      <div class="socials" id="socialList"><!--@social--></div>
+    </div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>© <span id="yr"><!--@year--></span> Monkey Head Brewing Co. · Est. 2015</span>
+    <span><span data-i18n="foot.resp"></span> · <a href="#top" data-i18n="foot.top"></a> · <a href="/admin" rel="nofollow">Staff</a></span>
+  </div>
+</footer>
+
+<script id="__DATA__" type="application/json"><!--@data--></script>
+<script src="/i18n.js"></script>
+<script src="/taps.js"></script>
+<script src="/site.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

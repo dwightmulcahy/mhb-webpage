@@ -1,0 +1,19 @@
+{
+  "updated": "2026-09-28T12:00:00.000Z",
+  "events": [
+    {
+      "id": "oktoberfest-2026",
+      "title": "First Annual Oktoberfest",
+      "title_es": "Primer Oktoberfest Anual",
+      "date": "2026-10-04",
+      "start": "16:00",
+      "end": "21:00",
+      "venue": "Zarpe Cocktail Lounge",
+      "address": "Zarpe Pueblito Sur, Playas del Coco",
+      "description": "Our collaboration Festbier with Potrero Brewing Co. on tap, an Oktoberfest pizza from Coco Pizza Company (pork belly, sauerkraut, sour cream and mustard drizzle) and live music from 2 Dudes.",
+      "description_es": "Nuestra Festbier colaborativa con Potrero Brewing Co. en tap, pizza de Oktoberfest de Coco Pizza Company (panceta, chucrut, natilla y mostaza) y música en vivo con 2 Dudes.",
+      "image": "/img/events/oktoberfest-2026.jpg",
+      "link": ""
+    }
+  ]
+}
