@@ -1,0 +1,52 @@
+name: GitHub Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing stable SemVer tag, for example v1.2.3'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: github-release-${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate manually created tag
+        id: tag
+        env:
+          TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || exit 1
+          echo "value=$TAG" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.value }}
+          fetch-depth: 0
+      - name: Generate conventional release notes
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          python3 scripts/standard_release_notes.py \
+            --tag "$TAG" \
+            --project-name "Monkey Head Brewing Website" \
+            --image "dwightmulcahy/mhb-webpage" \
+            --output release-notes.md
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" --verify-tag --notes-file release-notes.md
+          fi
