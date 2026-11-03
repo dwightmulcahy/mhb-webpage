@@ -32,3 +32,9 @@ docker compose pull && docker compose up -d
 ```
 
 Release images are published to `ghcr.io/dwightmulcahy/mhb-webpage` (`linux/amd64`, `linux/arm64`) by `.github/workflows/docker-release.yml` on every `v*.*.*` tag. Tags: `X.Y.Z`, `X.Y`, `X`, `latest`, `sha-<short>`. Pin a version with `MHB_TAG=1.2.3` in `.env`. To build locally instead: `docker compose up -d --build`.
+
+The version, commit and build date show next to **Staff Admin** in `/admin` (also at `/api/version`). Release images get them automatically; local builds show "dev build" unless you pass them:
+```sh
+docker build --build-arg APP_VERSION=$(git describe --tags --always) \
+  --build-arg GIT_SHA=$(git rev-parse HEAD) --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) -t mhb-web .
+```

@@ -14,6 +14,13 @@ const vm = require('vm');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+// Build info baked into the image (see Dockerfile ARGs); "dev" when run from source.
+const BUILD = {
+  version: process.env.APP_VERSION || 'dev',
+  commit: (process.env.GIT_SHA || 'unknown').slice(0, 7),
+  built: process.env.BUILD_DATE || null,
+  started: new Date().toISOString(),
+};
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/+$/, ''); // e.g. https://monkeyheadbrewing.com
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
@@ -374,6 +381,7 @@ http.createServer((req, res) => {
   try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(req, res, 400, 'bad request', 'text/plain'); }
   try {
     if (p === '/healthz') return send(req, res, 200, 'ok', 'text/plain');
+    if (p === '/api/version') return send(req, res, 200, JSON.stringify({ ...BUILD, node: process.version }), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400' }); return res.end(); }
     const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|login|upload)$/);
@@ -395,4 +403,4 @@ http.createServer((req, res) => {
     log('ERROR', { message: e.message, stack: e.stack, path: req.url });
     send(req, res, 500, 'server error', 'text/plain');
   }
-}).listen(PORT, () => log('INFO', { message: `MHB site on :${PORT}, data in ${DATA_DIR}` }));
+}).listen(PORT, () => log('INFO', { message: `MHB site ${BUILD.version} (${BUILD.commit}) on :${PORT}, data in ${DATA_DIR}` }));
