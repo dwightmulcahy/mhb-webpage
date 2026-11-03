@@ -27,5 +27,8 @@ To reset to the seed data, delete the matching file and restart the container.
 ## Deploy on QNAP
 ```sh
 cp .env.example .env   # set ADMIN_PASSWORD
-docker compose up -d --build
+echo "$GHCR_PAT" | docker login ghcr.io -u dwightmulcahy --password-stdin   # once; classic PAT with read:packages
+docker compose pull && docker compose up -d
 ```
+
+Release images are published to `ghcr.io/dwightmulcahy/mhb-webpage` (`linux/amd64`, `linux/arm64`) by `.github/workflows/docker-release.yml` on every `v*.*.*` tag. Tags: `X.Y.Z`, `X.Y`, `X`, `latest`, `sha-<short>`. Pin a version with `MHB_TAG=1.2.3` in `.env`. To build locally instead: `docker compose up -d --build`.

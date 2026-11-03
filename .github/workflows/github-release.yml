@@ -35,7 +35,7 @@ jobs:
         with:
           tag: ${{ steps.tag.outputs.value }}
           project-name: "Monkey Head Brewing Website"
-          image: "dwightmulcahy/mhb-webpage"
+          image: "ghcr.io/dwightmulcahy/mhb-webpage"
           output: "release-notes.md"
       - name: Publish GitHub release
         env:
