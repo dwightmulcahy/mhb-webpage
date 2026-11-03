@@ -22,7 +22,7 @@
     {
       "id": "whatsapp",
       "platform": "whatsapp",
-      "url": "https://wa.me/50687337046",
+      "url": "https://api.whatsapp.com/send?phone=50687337046",
       "label": "+506 8733 7046"
     },
     {

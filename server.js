@@ -320,7 +320,7 @@ function renderHome(req, lang) {
     .replace('<!--@places-->', MHBSite.renderPlaces(data.places, lang, t))
     .replace('<!--@merch-->', MHBSite.renderMerch(data.merch, lang, t))
     .replace('<!--@social-->', MHBSite.renderSocial(data.social))
-    .replace('id="bookTap" href="https://wa.me/50687337046"', `id="bookTap" href="${escAttr(MHBSite.waLink(data.mobiletap, lang))}"`)
+    .replace('id="bookTap" href="https://api.whatsapp.com/send?phone=50687337046"', `id="bookTap" href="${escAttr(MHBSite.waLink(data.mobiletap, lang))}"`)
     .replace('<!--@release-->', MHBSite.renderRelease(data.releases, lang, t))
     .replace('<section class="release" id="new"', MHBSite.currentRelease(data.releases) ? '<section class="release" id="new"' : '<section class="release" id="new" hidden')
     .replace('<!--@year-->', String(new Date().getFullYear()))

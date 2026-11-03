@@ -121,7 +121,15 @@
   function waLink(doc, lang) {
     const phone = String((doc && doc.phone) || '50687337046').replace(/\D/g, '');
     const text = (doc && (lang === 'es' ? doc.prefill_es || doc.prefill : doc.prefill)) || '';
-    return `https://wa.me/${phone}${text ? '?text=' + encodeURIComponent(text) : ''}`;
+    return waUrl(phone, text);
+  }
+  // api.whatsapp.com: wa.me is on some DNS blocklists and fails to resolve there
+  function waUrl(phone, text) {
+    return `https://api.whatsapp.com/send?phone=${String(phone).replace(/\D/g, '')}${text ? '&text=' + encodeURIComponent(text) : ''}`;
+  }
+  function fixWa(url) {
+    const m = String(url || '').match(/^https?:\/\/wa\.me\/(\d+)\/?(?:\?text=(.*))?$/);
+    return m ? waUrl(m[1], m[2] ? decodeURIComponent(m[2]) : '') : url;
   }
   // Specific message, or a random one from those marked "Include in random"
   function pickTapMessage(doc, rnd = Math.random) {
@@ -166,12 +174,13 @@
     const links = (doc && doc.links) || [];
     return links.map((l) => {
       const name = PLATFORM_NAME[l.platform] || l.platform;
-      const ext = /^https?:/.test(l.url);
-      return `<a class="social" href="${esc(l.url)}"${ext ? ' target="_blank" rel="noopener me"' : ''} aria-label="${esc(name)}${l.label ? ': ' + esc(l.label) : ''}">
+      const url = fixWa(l.url);
+      const ext = /^https?:/.test(url);
+      return `<a class="social" href="${esc(url)}"${ext ? ' target="_blank" rel="noopener me"' : ''} aria-label="${esc(name)}${l.label ? ': ' + esc(l.label) : ''}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SOCIAL_ICONS[l.platform] || SOCIAL_ICONS.website}</svg>
         <span>${esc(l.label || name)}</span></a>`;
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, pickTapMessage, renderTapDialog };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog };
 })(typeof window !== 'undefined' ? window : globalThis);
