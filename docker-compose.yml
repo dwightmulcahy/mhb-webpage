@@ -1,7 +1,7 @@
 services:
   mhb-web:
     build: .
-    image: mhb-web:latest
+    image: ghcr.io/dwightmulcahy/mhb-webpage:${MHB_TAG:-latest}   # pulled from GHCR; `build: .` is the local fallback
     container_name: mhb-web
     restart: unless-stopped
     ports:
