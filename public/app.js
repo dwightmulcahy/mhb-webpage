@@ -75,6 +75,31 @@
   swap.querySelector('.face-hit').addEventListener('click', flip);
   swap.querySelector('.logo-back').addEventListener('click', flip);
 
+  // ---------- Mobile Tap: "van in the shop" popup ----------
+  const book = $('#bookTap'), dlg = $('#tapDlg');
+  const syncBook = () => { if (data.mobiletap) book.href = S.waLink(data.mobiletap, I18N.lang); };
+  book.addEventListener('click', (e) => {
+    const d = data.mobiletap;
+    if (!d || !d.inShop || !dlg || typeof dlg.showModal !== 'function') return;  // straight to WhatsApp
+    const msg = S.pickTapMessage(d);
+    if (!msg) return;
+    e.preventDefault();
+    $('#tapBox').innerHTML = S.renderTapDialog(d, msg, I18N.lang, t);
+    dlg.showModal();
+  });
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg || e.target.closest('[data-close]')) dlg.close();   // backdrop or close buttons
+    else if (e.target.closest('.wa')) setTimeout(() => dlg.close(), 300);
+  });
+  // ?tapdemo=<message id|random> opens the popup straight away (used by the admin "Preview" button)
+  const demo = new URLSearchParams(location.search).get('tapdemo');
+  if (demo && data.mobiletap) {
+    const d = { ...data.mobiletap, inShop: true, pick: demo };
+    $('#tapBox').innerHTML = S.renderTapDialog(d, S.pickTapMessage(d), I18N.lang, t);
+    document.getElementById('mobile').scrollIntoView();
+    dlg.showModal();
+  }
+
   // ---------- live updates ----------
   MHB.watch((d) => { data.taps = d; drawTaps(); }, () => { $('#updated').textContent = t('taps.unavailable'); }, 60000, '/api/taps', data.taps);
   MHB.watch((d) => { data.events = d; drawEvents(); }, null, 300000, '/api/events', data.events);
@@ -82,8 +107,9 @@
   MHB.watch((d) => { data.places = d; drawPlaces(); }, null, 600000, '/api/places', data.places);
   MHB.watch((d) => { data.social = d; drawSocial(); }, null, 600000, '/api/social', data.social);
   MHB.watch((d) => { data.releases = d; drawRelease(); }, null, 300000, '/api/releases', data.releases);
+  MHB.watch((d) => { data.mobiletap = d; syncBook(); }, null, 600000, '/api/mobiletap', data.mobiletap);
 
-  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); });
+  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); syncBook(); });
   $('#yr').textContent = new Date().getFullYear();
-  if (I18N.changed) I18N.apply(); else { syncLangBtn(); drawBanner(); }
+  if (I18N.changed) I18N.apply(); else { syncLangBtn(); drawBanner(); syncBook(); }
 })();

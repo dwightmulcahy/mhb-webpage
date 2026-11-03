@@ -1,0 +1,90 @@
+{
+  "updated": "2026-11-03T12:00:00.000Z",
+  "inShop": true,
+  "pick": "random",
+  "phone": "50687337046",
+  "prefill": "Hola Monkey Head! 🍺 I'd like to book you for a [wedding / beach party / festival / private event] on [date] in [place] for about [number] people.",
+  "prefill_es": "¡Hola Monkey Head! 🍺 Quisiera reservarlos para una [boda / fiesta en la playa / festival / evento privado] el [fecha] en [lugar] para unas [número] personas.",
+  "messages": [
+    {
+      "id": "a-mechanic",
+      "title": "Our van's getting a tune-up!",
+      "title_es": "¡La buseta está en el taller!",
+      "body": "The Mobile Tap is in the shop: a monkey with a wrench is “fixing” it and we're keeping a close eye on him. The good news: we still pour at weddings, beach parties, festivals and private events. Tell us about yours and we'll make it happen.",
+      "body_es": "La Mobile Tap está en el taller: un mono con llave inglesa la está “arreglando” y lo estamos vigilando de cerca. La buena noticia: seguimos sirviendo en bodas, fiestas en la playa, festivales y eventos privados. Cuéntenos del suyo y lo hacemos realidad.",
+      "emoji": "🔧",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "b-siesta",
+      "title": "The van is taking a siesta",
+      "title_es": "La buseta está tomando una siesta",
+      "body": "It's in the shop getting some TLC. Pura vida, the beer still travels: weddings, beach parties, festivals and private events are still on.",
+      "body_es": "Está en el taller recibiendo cariño. Pura vida, la birra sigue viajando: bodas, fiestas en la playa, festivales y eventos privados siguen en pie.",
+      "emoji": "🚐💤",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "c-out-of-order",
+      "title": "Temporarily van-less, never beer-less.",
+      "title_es": "Temporalmente sin buseta, nunca sin birra.",
+      "body": "Our six-tap van is in the shop, but we'll still bring the bar to your wedding, beach party, festival or private event.",
+      "body_es": "Nuestra buseta de seis taps está en el taller, pero igual llevamos el bar a su boda, fiesta en la playa, festival o evento privado.",
+      "emoji": "🚧",
+      "style": "sign",
+      "active": true
+    },
+    {
+      "id": "d-monkey-keys",
+      "title": "A monkey stole the keys",
+      "title_es": "Un mono se robó las llaves",
+      "body": "We're negotiating his return with bananas. Talks are going well-ish. Meanwhile we still pour at weddings, beach parties, festivals and private events.",
+      "body_es": "Estamos negociando su devolución con bananos. Las conversaciones van más o menos bien. Mientras tanto, seguimos sirviendo en bodas, fiestas en la playa, festivales y eventos privados.",
+      "emoji": "🐒🔑",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "e-tamarindo",
+      "title": "The van ran off to Tamarindo",
+      "title_es": "La buseta se fue a Tamarindo",
+      "body": "Last we heard it was learning to surf and won't answer our calls. It'll be back (probably tanned). The beer, however, is ready for your wedding, beach party, festival or private event.",
+      "body_es": "Lo último que supimos es que está aprendiendo a surfear y no contesta el teléfono. Ya volverá (seguro bronceada). La birra, en cambio, está lista para su boda, fiesta en la playa, festival o evento privado.",
+      "emoji": "🏄",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "f-disco",
+      "title": "Pimp my van, Guanacaste edition",
+      "title_es": "Tuneando la buseta, edición Guanacaste",
+      "body": "New tires, fresh wax and possibly a disco ball. While it gets its glow-up, we still bring the taps to weddings, beach parties, festivals and private events.",
+      "body_es": "Llantas nuevas, cera fresca y posiblemente una bola disco. Mientras se pone guapa, seguimos llevando los taps a bodas, fiestas en la playa, festivales y eventos privados.",
+      "emoji": "🪩",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "g-tired",
+      "title": "Our van poured too much beer",
+      "title_es": "La buseta sirvió demasiada birra",
+      "body": "Turns out six taps at full speed is a workout. It's resting its legs in the shop. We're not tired though: weddings, beach parties, festivals and private events, we're in.",
+      "body_es": "Resulta que seis taps a toda velocidad cansan. Está descansando en el taller. Nosotros no: bodas, fiestas en la playa, festivales y eventos privados, ¡nos apuntamos!",
+      "emoji": "🍺😮‍💨",
+      "style": "plain",
+      "active": true
+    },
+    {
+      "id": "h-rainy",
+      "title": "The van is hiding from the rainy season",
+      "title_es": "La buseta se esconde del invierno",
+      "body": "Like a true tico, it refuses to go out in the rain. It's cozy in the shop for now. Rain or shine, we still pour at weddings, beach parties, festivals and private events.",
+      "body_es": "Como buen tico, no sale cuando llueve. Por ahora está calientita en el taller. Llueva o haga sol, seguimos sirviendo en bodas, fiestas en la playa, festivales y eventos privados.",
+      "emoji": "🌧️",
+      "style": "plain",
+      "active": true
+    }
+  ]
+}

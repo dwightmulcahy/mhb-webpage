@@ -117,6 +117,36 @@
       </div>`;
   }
 
+  // ---------- Mobile Tap "van in the shop" popup ----------
+  function waLink(doc, lang) {
+    const phone = String((doc && doc.phone) || '50687337046').replace(/\D/g, '');
+    const text = (doc && (lang === 'es' ? doc.prefill_es || doc.prefill : doc.prefill)) || '';
+    return `https://wa.me/${phone}${text ? '?text=' + encodeURIComponent(text) : ''}`;
+  }
+  // Specific message, or a random one from those marked "Include in random"
+  function pickTapMessage(doc, rnd = Math.random) {
+    const list = (doc && doc.messages) || [];
+    if (!list.length) return null;
+    if (doc.pick && doc.pick !== 'random') return list.find((m) => m.id === doc.pick) || list[0];
+    const pool = list.filter((m) => m.active !== false);
+    const from = pool.length ? pool : list;
+    return from[Math.floor(rnd() * from.length)];
+  }
+  function renderTapDialog(doc, msg, lang, t) {
+    if (!msg) return '';
+    const title = pick(msg, 'title', lang), body = pick(msg, 'body', lang);
+    return `<button class="tap-x" type="button" data-close aria-label="${t('tapdlg.close')}">×</button>
+      ${msg.style === 'sign'
+        ? `<div class="tap-sign-wrap"><img src="/img/mobile-tap.jpg" alt="" width="1400" height="983"><span class="tap-sign">${t('tapdlg.sign')}</span></div>`
+        : `<div class="tap-emoji" aria-hidden="true">${esc(msg.emoji || '🔧')}</div>`}
+      <h3 id="tapdlg-title">${esc(title)}</h3>
+      ${body ? `<p>${esc(body)}</p>` : ''}
+      <div class="tap-actions">
+        <a class="btn primary wa" href="${esc(waLink(doc, lang))}" target="_blank" rel="noopener">${t('tapdlg.contact')}</a>
+        <button class="btn ghost" type="button" data-close>${t('tapdlg.later')}</button>
+      </div>`;
+  }
+
   // Simple line icons (24x24, stroke = currentColor)
   const SOCIAL_ICONS = {
     instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/>',
@@ -143,5 +173,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, pickTapMessage, renderTapDialog };
 })(typeof window !== 'undefined' ? window : globalThis);

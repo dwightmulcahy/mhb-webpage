@@ -48,6 +48,7 @@
       'foot.directions': 'Get directions →', 'foot.top': 'Back to top ↑',
       'rel.eyebrow': 'New beer release', 'rel.sticker': 'NEW!', 'rel.style': 'Style', 'rel.notes': 'Tasting notes',
       'rel.pair': 'Pairs with', 'rel.avail': 'Where to get it', 'rel.collab': 'In collaboration with', 'rel.cta': 'See the full taplist', 'nav.new': 'New Release',
+      'tapdlg.contact': 'Contact via WhatsApp', 'tapdlg.later': 'Maybe later', 'tapdlg.close': 'Close', 'tapdlg.sign': 'OUT OF ORDER',
       'nav.more': 'Beer, Cider & Cocktails', 'nav.mobile': 'Mobile Tap', 'nav.about': 'The Brewery',
     },
     es: {
@@ -95,6 +96,7 @@
       'foot.directions': 'Cómo llegar →', 'foot.top': 'Volver arriba ↑',
       'rel.eyebrow': 'Nuevo lanzamiento', 'rel.sticker': '¡NUEVA!', 'rel.style': 'Estilo', 'rel.notes': 'Notas de cata',
       'rel.pair': 'Marida con', 'rel.avail': 'Dónde conseguirla', 'rel.collab': 'En colaboración con', 'rel.cta': 'Ver toda la lista', 'nav.new': 'Nuevo Lanzamiento',
+      'tapdlg.contact': 'Contactar por WhatsApp', 'tapdlg.later': 'Quizás luego', 'tapdlg.close': 'Cerrar', 'tapdlg.sign': 'FUERA DE SERVICIO',
       'nav.more': 'Cerveza, Sidra y Cócteles', 'nav.mobile': 'Tap Móvil', 'nav.about': 'La Cervecería',
     },
   };

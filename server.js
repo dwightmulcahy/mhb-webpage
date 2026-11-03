@@ -47,6 +47,7 @@ const STORES = {
   places: { file: 'places.json', schema: 'places' },
   social: { file: 'social.json', schema: 'social' },
   releases: { file: 'releases.json', schema: 'releases' },
+  mobiletap: { file: 'mobiletap.json', schema: 'mobiletap' },
 };
 for (const s of Object.values(STORES)) {
   s.path = path.join(DATA_DIR, s.file);
@@ -101,7 +102,17 @@ function validateCollection(schemaName, input) {
     return o;
   });
   if (schemaName === 'events') out.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
-  return { updated: new Date().toISOString(), [sc.listKey]: out };
+  // Top-level settings for collections that have them (e.g. mobiletap)
+  const settings = {};
+  for (const f of sc.settings || []) {
+    const v = input[f.k];
+    if (f.type === 'bool') { settings[f.k] = v === undefined ? !!f.def : !!v; continue; }
+    let s = typeof v === 'string' ? v.trim().slice(0, f.type === 'textarea' ? 1000 : 300) : '';
+    if (f.type === 'pick' && s !== 'random' && !out.some((r) => r.id === s)) s = 'random';
+    if (f.k === 'phone') { s = s.replace(/\D/g, ''); if (!/^\d{8,15}$/.test(s)) throw new Error(`${f.label}: 8–15 digits including country code`); }
+    settings[f.k] = s || f.def || '';
+  }
+  return { updated: new Date().toISOString(), ...settings, [sc.listKey]: out };
 }
 const validate = (name, body) => (name === 'taps' ? validateTaps(body) : validateCollection(STORES[name].schema, body));
 
@@ -273,7 +284,7 @@ function renderHome(req, lang) {
   const t = (k) => I18N.tFor(lang, k);
   const base = baseUrl(req);
   const url = base + (lang === 'es' ? '/es' : '/');
-  const data = { taps: readStore('taps'), events: readStore('events'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases') };
+  const data = { taps: readStore('taps'), events: readStore('events'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases'), mobiletap: readStore('mobiletap') };
   const beers = MHB.beers(data.taps).length;
   const banner = MHBSite.renderBanner(data.events, lang, t);
   const head = [
@@ -309,6 +320,7 @@ function renderHome(req, lang) {
     .replace('<!--@places-->', MHBSite.renderPlaces(data.places, lang, t))
     .replace('<!--@merch-->', MHBSite.renderMerch(data.merch, lang, t))
     .replace('<!--@social-->', MHBSite.renderSocial(data.social))
+    .replace('id="bookTap" href="https://wa.me/50687337046"', `id="bookTap" href="${escAttr(MHBSite.waLink(data.mobiletap, lang))}"`)
     .replace('<!--@release-->', MHBSite.renderRelease(data.releases, lang, t))
     .replace('<section class="release" id="new"', MHBSite.currentRelease(data.releases) ? '<section class="release" id="new"' : '<section class="release" id="new" hidden')
     .replace('<!--@year-->', String(new Date().getFullYear()))
@@ -384,7 +396,7 @@ http.createServer((req, res) => {
     if (p === '/api/version') return send(req, res, 200, JSON.stringify({ ...BUILD, node: process.version }), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400' }); return res.end(); }
-    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|login|upload)$/);
+    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|login|upload)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, 'method not allowed', 'text/plain');
