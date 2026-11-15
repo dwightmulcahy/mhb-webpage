@@ -22,6 +22,8 @@ const BUILD = {
   started: new Date().toISOString(),
 };
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/+$/, ''); // e.g. https://monkeyheadbrewing.com
+// security.txt contact (RFC 9116): a mailto:, https: or tel: URI
+const SECURITY_CONTACT = process.env.SECURITY_CONTACT || 'tel:+506-8733-7046';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 
@@ -125,12 +127,44 @@ const MIME = {
   '.webp': 'image/webp', '.woff2': 'font/woff2',
 };
 const UPLOAD_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+// File signatures, so a renamed HTML/script can't be uploaded under an image Content-Type.
+const MAGIC = {
+  '.jpg': (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  '.png': (b) => b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  '.webp': (b) => b.length > 12 && b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP',
+};
 const COMPRESSIBLE = /^(text\/|application\/(json|javascript|xml|manifest\+json)|image\/svg)/;
-const BASE_HEADERS = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' };
+const BASE_HEADERS = {
+  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+  'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Resource-Policy': 'same-site',
+  'X-Permitted-Cross-Domain-Policies': 'none',
+};
+// Content-Security-Policy. Everything (fonts, JS, CSS, images) is self-hosted; inline <script> blocks
+// (admin, board) are allowed by SHA-256 hash, computed from the exact HTML being served.
+const CSP_BASE = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; " +
+  "manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'";
+const cspCache = new Map();
+function cspFor(html) {
+  const key = crypto.createHash('sha1').update(html).digest('hex');
+  if (!cspCache.has(key)) {
+    const hashes = [];
+    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (/\bsrc=/.test(m[1]) || /\btype="application\/(ld\+)?json"/.test(m[1]) || !m[2]) continue; // data blocks never execute
+      hashes.push(`'sha256-${crypto.createHash('sha256').update(m[2]).digest('base64')}'`);
+    }
+    if (cspCache.size > 50) cspCache.clear();
+    cspCache.set(key, `${CSP_BASE}; script-src 'self'${hashes.length ? ' ' + hashes.join(' ') : ''}`);
+  }
+  return cspCache.get(key);
+}
+// HSTS only on responses the visitor received over https (never on LAN http access).
+const hsts = (req) => (visitorProto(req) === 'https' ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {});
 
 function send(req, res, code, body, type = 'application/json; charset=utf-8', extra = {}) {
-  const headers = { 'Content-Type': type, ...BASE_HEADERS, ...extra };
   let buf = Buffer.isBuffer(body) ? body : Buffer.from(String(body));
+  const csp = type.startsWith('text/html') ? cspFor(buf.toString('utf8')) : "default-src 'none'; frame-ancestors 'none'";
+  const headers = { 'Content-Type': type, ...BASE_HEADERS, 'Content-Security-Policy': csp, ...hsts(req), ...extra };
   if (buf.length > 1024 && COMPRESSIBLE.test(type) && /\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
     buf = zlib.gzipSync(buf); headers['Content-Encoding'] = 'gzip'; headers.Vary = 'Accept-Encoding';
   }
@@ -139,6 +173,29 @@ function send(req, res, code, body, type = 'application/json; charset=utf-8', ex
   res.end(req.method === 'HEAD' ? undefined : buf);
 }
 const jsonErr = (req, res, code, msg) => send(req, res, code, JSON.stringify({ error: msg }));
+
+// Brute-force guard: 10 wrong passwords per IP per 15 minutes, then 429 until the window resets.
+const FAILS = new Map(); // ip -> { n, reset }
+const FAIL_LIMIT = 10, FAIL_WINDOW = 15 * 60 * 1000;
+function lockedOut(req) {
+  const f = FAILS.get(clientIp(req));
+  if (f && Date.now() > f.reset) { FAILS.delete(clientIp(req)); return false; }
+  return !!f && f.n >= FAIL_LIMIT;
+}
+function noteFail(req) {
+  const ip = clientIp(req), now = Date.now();
+  const f = FAILS.get(ip);
+  if (!f || now > f.reset) FAILS.set(ip, { n: 1, reset: now + FAIL_WINDOW }); else f.n++;
+  if (FAILS.size > 10000) for (const [k, v] of FAILS) if (now > v.reset) FAILS.delete(k);
+}
+// Returns true, or sends 401/429 and returns false.
+function requireAuth(req, res) {
+  if (lockedOut(req)) { jsonErr(req, res, 429, 'too many attempts, try again later'); return false; }
+  if (authorized(req)) { FAILS.delete(clientIp(req)); return true; }
+  noteFail(req);
+  jsonErr(req, res, 401, 'unauthorized');
+  return false;
+}
 
 function authorized(req) {
   if (!ADMIN_PASSWORD) return false;
@@ -186,14 +243,15 @@ function canonicalRedirect(req) {
 async function handleApi(req, res, route) {
   if (route === 'login') {
     if (req.method !== 'POST') return jsonErr(req, res, 405, 'method not allowed');
-    return authorized(req) ? send(req, res, 200, '{"ok":true}') : jsonErr(req, res, 401, 'unauthorized');
+    return requireAuth(req, res) && send(req, res, 200, '{"ok":true}');
   }
   if (route === 'upload') {
     if (req.method !== 'POST') return jsonErr(req, res, 405, 'method not allowed');
-    if (!authorized(req)) return jsonErr(req, res, 401, 'unauthorized');
+    if (!requireAuth(req, res)) return;
     const ext = UPLOAD_TYPES[(req.headers['content-type'] || '').split(';')[0]];
     if (!ext) return jsonErr(req, res, 415, 'upload a JPEG, PNG or WebP image');
     const buf = await readBody(req, 8_000_000);
+    if (!MAGIC[ext](buf)) return jsonErr(req, res, 415, 'file is not a valid JPEG, PNG or WebP image');
     const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
     fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
     return send(req, res, 200, JSON.stringify({ path: `/uploads/${name}` }));
@@ -204,7 +262,7 @@ async function handleApi(req, res, route) {
     return send(req, res, 200, JSON.stringify(readStore(route)), undefined, { 'Cache-Control': 'no-store' });
   }
   if (req.method === 'PUT') {
-    if (!authorized(req)) return jsonErr(req, res, 401, 'unauthorized');
+    if (!requireAuth(req, res)) return;
     try {
       const clean = validate(route, JSON.parse((await readBody(req, 5_000_000)).toString('utf8')));
       writeAtomic(store.path, JSON.stringify(clean, null, 2));
@@ -393,9 +451,9 @@ http.createServer((req, res) => {
   try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(req, res, 400, 'bad request', 'text/plain'); }
   try {
     if (p === '/healthz') return send(req, res, 200, 'ok', 'text/plain');
-    if (p === '/api/version') return send(req, res, 200, JSON.stringify({ ...BUILD, node: process.version }), undefined, { 'Cache-Control': 'no-store' });
+    if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
-    if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400' }); return res.end(); }
+    if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
     const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|login|upload)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
@@ -405,6 +463,10 @@ http.createServer((req, res) => {
     if (p === '/es' || p === '/es/') return send(req, res, 200, renderHome(req, 'es'), MIME['.html'], { 'Cache-Control': 'no-cache', 'Content-Language': 'es' });
     if (p === '/robots.txt') {
       return send(req, res, 200, `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /board\nDisallow: /api/\n\nSitemap: ${baseUrl(req)}/sitemap.xml\n`, MIME['.txt']);
+    }
+    if (p === '/.well-known/security.txt' || p === '/security.txt') {
+      const expires = new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10) + 'T00:00:00.000Z';
+      return send(req, res, 200, `Contact: ${SECURITY_CONTACT}\nExpires: ${expires}\nPreferred-Languages: en, es\nCanonical: ${baseUrl(req)}/.well-known/security.txt\n`, MIME['.txt']);
     }
     if (p === '/sitemap.xml') return send(req, res, 200, sitemap(req), MIME['.xml'], { 'Cache-Control': 'public, max-age=3600' });
     if (p === '/manifest.webmanifest') return send(req, res, 200, MANIFEST, MIME['.webmanifest'], { 'Cache-Control': 'public, max-age=86400' });

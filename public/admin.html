@@ -336,7 +336,7 @@ $('#logout').onclick = (e) => { e.preventDefault(); logout(); };
 $('#loginForm').onsubmit = async (e) => {
   e.preventDefault(); token = $('#pw').value;
   const r = await fetch('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
-  if (!r.ok) return ($('#loginErr').textContent = 'Wrong password');
+  if (!r.ok) return ($('#loginErr').textContent = r.status === 429 ? 'Too many attempts — wait 15 minutes' : 'Wrong password');
   sessionStorage.setItem('mhb_token', token); start();
 };
 window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc) !== saved) || Object.keys(COLL).some(collDirty)) e.preventDefault(); });
@@ -349,7 +349,7 @@ window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc)
     const sha = b.commit && b.commit !== 'unknown' ? `<span class="sha"> · ${esc(b.commit)}</span>` : '';
     const when = b.built ? `<span class="when"> · built ${esc(fmt(b.built))}</span>` : '';
     $('#build').innerHTML = ver + sha + when;
-    $('#build').title = `Version ${b.version}\nCommit ${b.commit}\nBuilt ${b.built ? fmt(b.built) : 'n/a'}\nRunning since ${fmt(b.started)}\nNode ${b.node}`;
+    $('#build').title = `Version ${b.version}\nCommit ${b.commit}\nBuilt ${b.built ? fmt(b.built) : 'n/a'}\nRunning since ${fmt(b.started)}`;
   } catch { /* version info is optional */ }
 })();
 token ? start() : logout();
