@@ -77,7 +77,7 @@
     <div id="tabTaps">
     <p style="color:var(--muted);margin-top:0">Uses the <b>TapListBuilder</b> JSON format. Import a file exported from TapListBuilder, or edit here and Export to take it back. Items in the list = on tap; <b>Off tap</b> moves a beer to Saved beverages. Changes go live on <b>Save &amp; publish</b>.</p>
     <div class="toolbar">
-      <span><input type="file" id="importFile" accept=".json,application/json" hidden><button type="button" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button></span>
+      <span><input type="file" id="importFile" accept=".json,application/json" hidden><button type="button" id="importBtn">⬆ Import JSON</button></span>
       <button type="button" id="export">⬇ Export JSON</button>
       <span style="flex:1"></span>
       <select id="saved"></select><button type="button" id="addSaved">+ Put on tap</button>
@@ -352,6 +352,7 @@ window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc)
     $('#build').title = `Version ${b.version}\nCommit ${b.commit}\nBuilt ${b.built ? fmt(b.built) : 'n/a'}\nRunning since ${fmt(b.started)}`;
   } catch { /* version info is optional */ }
 })();
+$('#importBtn').onclick = () => $('#importFile').click(); // no inline handlers (CSP)
 token ? start() : logout();
 </script>
 </body>
