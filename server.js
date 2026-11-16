@@ -325,6 +325,41 @@ async function handleApi(req, res, route) {
   jsonErr(req, res, 405, 'method not allowed');
 }
 
+// ---------- unused upload cleanup ----------
+// Posters/photos that no store references any more are moved to DATA_DIR/uploads-trash after a grace period
+// (an upload may sit in an unsaved admin draft), then deleted from the trash later. Runs at startup and daily.
+const TRASH_DIR = path.join(DATA_DIR, 'uploads-trash');
+const DAY = 864e5;
+const ORPHAN_GRACE_DAYS = Number(process.env.ORPHAN_GRACE_DAYS || 7);
+const TRASH_KEEP_DAYS = Number(process.env.TRASH_KEEP_DAYS || 30);
+function cleanUploads(now = Date.now()) {
+  const used = new Set();
+  for (const name of Object.keys(STORES)) {
+    for (const m of JSON.stringify(readStore(name)).matchAll(/\/uploads\/([\w.-]+)/g)) used.add(m[1]);
+  }
+  let moved = 0, purged = 0;
+  for (const f of fs.readdirSync(UPLOAD_DIR)) {
+    const full = path.join(UPLOAD_DIR, f);
+    const st = fs.statSync(full);
+    if (!st.isFile() || used.has(f) || now - st.mtimeMs < ORPHAN_GRACE_DAYS * DAY) continue;
+    fs.mkdirSync(TRASH_DIR, { recursive: true });
+    fs.renameSync(full, path.join(TRASH_DIR, f));
+    fs.utimesSync(path.join(TRASH_DIR, f), new Date(now), new Date(now)); // trash age counts from the move
+    moved++;
+  }
+  if (fs.existsSync(TRASH_DIR)) {
+    for (const f of fs.readdirSync(TRASH_DIR)) {
+      const full = path.join(TRASH_DIR, f);
+      if (now - fs.statSync(full).mtimeMs >= TRASH_KEEP_DAYS * DAY) { fs.unlinkSync(full); purged++; }
+    }
+  }
+  if (moved || purged) log('INFO', { message: `uploads cleanup: ${moved} unused moved to uploads-trash, ${purged} purged` });
+  return { moved, purged };
+}
+function safeClean() { try { cleanUploads(); } catch (e) { log('WARNING', { message: `uploads cleanup failed: ${e.message}` }); } }
+setTimeout(safeClean, 5000).unref();
+setInterval(safeClean, DAY).unref();
+
 // ---------- server-side rendered home page ----------
 // ---------- cache busting ----------
 // Every /x.css, /x.js and image referenced from our HTML gets ?v=<content hash>, so browsers and
