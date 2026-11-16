@@ -1,0 +1,41 @@
+# Optional nightly log report for mhb-web (https://github.com/dwightmulcahy/logwatch).
+#   docker compose -f docker-compose.yml -f docker-compose.logwatch.yml up -d
+# Secrets (ANTHROPIC_API_KEY, SMTP_*, MAIL_TO) live in LOGWATCH_ENV_FILE, not in this repo.
+services:
+  logwatch:
+    image: dwightmulcahy/logwatcher:${LOGWATCH_TAG:-latest}
+    container_name: mhb-web-logwatch
+    restart: unless-stopped
+    depends_on: [mhb-web]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${LOGWATCH_DATA:-./logwatch-data}:/data   # must be owned by root (container has no capabilities)
+    env_file:
+      - path: ${LOGWATCH_ENV_FILE:-/share/Data/config/logwatch/.env}
+        required: true
+    environment:
+      - TZ=America/Costa_Rica
+      - TARGET_CONTAINER=mhb-web
+      - APP_NAME=mhb-web
+      - APP_DESC=the Monkey Head Brewing website (Node, JSON request logs, behind Cloudflare)
+      - PROBE_IGNORE=^/admin$$      # /admin is the real staff editor, not a probe
+      - MODE=${LOGWATCH_MODE:-hybrid}
+      - RUN_AT=${LOGWATCH_RUN_AT:-07:00}
+      - RUN_ON_START=${LOGWATCH_RUN_ON_START:-0}   # set 1 once to get a test email
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 100
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  mhb-web:
+    # docker logs only go back as far as the json-file keeps them; cap growth on the NAS.
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
