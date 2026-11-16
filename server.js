@@ -393,7 +393,7 @@ function renderHome(req, lang) {
 
 function sitemap(req) {
   const base = baseUrl(req);
-  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated]
+  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated, readStore('mobiletap').updated]
     .filter(Boolean).sort().pop() || new Date().toISOString();
   const alt = `<xhtml:link rel="alternate" hreflang="en" href="${base}/"/><xhtml:link rel="alternate" hreflang="es" href="${base}/es"/>`;
   return `<?xml version="1.0" encoding="UTF-8"?>
