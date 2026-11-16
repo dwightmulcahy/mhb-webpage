@@ -145,7 +145,7 @@
     const title = pick(msg, 'title', lang), body = pick(msg, 'body', lang);
     return `<button class="tap-x" type="button" data-close aria-label="${t('tapdlg.close')}">×</button>
       ${msg.style === 'sign'
-        ? `<div class="tap-sign-wrap"><img src="/img/mobile-tap.jpg" alt="" width="1400" height="983"><span class="tap-sign">${t('tapdlg.sign')}</span></div>`
+        ? `<div class="tap-sign-wrap"><img src="/img/mobile-tap.jpg" alt="" width="1200" height="843"><span class="tap-sign">${t('tapdlg.sign')}</span></div>`
         : `<div class="tap-emoji" aria-hidden="true">${esc(msg.emoji || '🔧')}</div>`}
       <h3 id="tapdlg-title">${esc(title)}</h3>
       ${body ? `<p>${esc(body)}</p>` : ''}
