@@ -61,10 +61,18 @@
   .build .dev { color: #f7a35c; }
   .nav .brand, .nav ul a { white-space: nowrap; }
   @media (max-width: 560px) { .build .when, .build .sha { display: none; } .nav .brand { font-size: 1.2rem; } .nav ul { gap: 12px; } }
+  dialog.hist { border: 0; border-radius: var(--radius); padding: 0; width: min(560px, 94vw); max-height: 80vh; }
+  dialog.hist::backdrop { background: rgba(20,18,16,.6); }
+  dialog.hist header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #eee3cc; }
+  dialog.hist h3 { margin: 0; font-size: 1.6rem; }
+  dialog.hist ol { list-style: none; margin: 0; padding: 8px 18px 18px; overflow: auto; max-height: 60vh; }
+  dialog.hist li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px dashed #eee3cc; }
+  dialog.hist li small { color: var(--muted); }
+  dialog.hist .cur { font-weight: 700; color: #2fa84f; }
 </style>
 </head>
 <body>
-<nav class="nav"><div class="wrap"><a class="brand" href="/"><img src="/img/mark.png" alt="">Staff Admin</a><span class="build" id="build" title=""></span><ul><li class="keep"><a href="/board" target="_blank">TV board</a></li><li class="keep"><a href="#" id="logout">Log out</a></li></ul></div></nav>
+<nav class="nav"><div class="wrap"><a class="brand" href="/"><img src="/img/mark.png" alt="">Staff Admin</a><span class="build" id="build" title=""></span><ul><li class="keep"><a href="/board" target="_blank">TV board</a></li><li class="keep"><a href="#" id="backup" title="Download every list as one JSON file">Backup</a></li><li class="keep"><a href="#" id="logout">Log out</a></li></ul></div></nav>
 
 <div class="login" id="login" hidden>
   <h2 style="font-size:2.2rem;margin-bottom:14px">Staff login</h2>
@@ -94,7 +102,9 @@
   </div>
 </main>
 
-<div class="bar" id="bar" hidden><div class="wrap"><span id="msg">No changes</span><div style="display:flex;gap:8px"><button id="revert" style="background:transparent;color:var(--cream);border-color:var(--cream)">Revert</button><button class="primary" id="save">Save &amp; publish</button></div></div></div>
+<div class="bar" id="bar" hidden><div class="wrap"><span id="msg">No changes</span><div style="display:flex;gap:8px"><button id="history" style="background:transparent;color:var(--cream);border-color:var(--cream)" title="Earlier saved versions of this tab">⟲ History</button><button id="revert" style="background:transparent;color:var(--cream);border-color:var(--cream)">Revert</button><button class="primary" id="save">Save &amp; publish</button></div></div></div>
+
+<dialog class="hist" id="histDlg" aria-labelledby="histTitle"><header><h3 id="histTitle">History</h3><button type="button" class="mv" id="histClose">✕</button></header><ol id="histList"></ol></dialog>
 
 <script src="/taps.js"></script>
 <script src="/schemas.js"></script>
@@ -352,6 +362,39 @@ window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc)
     $('#build').title = `Version ${b.version}\nCommit ${b.commit}\nBuilt ${b.built ? fmt(b.built) : 'n/a'}\nRunning since ${fmt(b.started)}`;
   } catch { /* version info is optional */ }
 })();
+// ---------- history: load an earlier saved version into the editor (then Save & publish to restore it) ----------
+const authed = (url) => fetch(url, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+const tabLabel = () => (tab === 'taps' ? 'Taplist' : MHB_SCHEMAS[tab].label);
+$('#history').onclick = async () => {
+  const r = await authed('/api/history/' + tab);
+  if (r.status === 401) return logout();
+  const list = await r.json();
+  const fmt = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  $('#histTitle').textContent = `${tabLabel()} history`;
+  $('#histList').innerHTML = list.length ? list.map((v, i) => `<li><span>${esc(fmt(v.savedAt))}<br><small>${i === 0 ? '<span class="cur">Live now</span>' : `${list.length - i} save(s) ago`} · ${(v.bytes / 1024).toFixed(1)} KB</small></span>${i === 0 ? '' : `<button type="button" class="mv" data-load="${esc(v.id)}">Load</button>`}</li>`).join('') : '<li>No saved versions yet.</li>';
+  $('#histDlg').showModal();
+};
+$('#histClose').onclick = () => $('#histDlg').close();
+$('#histList').addEventListener('click', async (e) => {
+  const id = e.target.dataset.load; if (!id) return;
+  const unsaved = tab === 'taps' ? JSON.stringify(doc) !== saved : collDirty(tab);
+  if (unsaved && !confirm('Discard your unsaved changes on this tab and load the older version?')) return;
+  const r = await authed(`/api/history/${tab}/${encodeURIComponent(id)}`);
+  if (!r.ok) return alert('Could not load that version');
+  const old = await r.json();
+  if (tab === 'taps') { doc = old; render(); } else { COLL[tab].doc = old; renderColl(); }
+  $('#histDlg').close();
+  $('#msg').textContent = 'Older version loaded — review, then Save & publish to restore it (or Revert)';
+});
+$('#backup').onclick = async (e) => {
+  e.preventDefault();
+  const r = await authed('/api/backup');
+  if (r.status === 401) return logout();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(await r.blob());
+  a.download = (r.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'mhb-backup.json';
+  a.click(); URL.revokeObjectURL(a.href);
+};
 $('#importBtn').onclick = () => $('#importFile').click(); // no inline handlers (CSP)
 token ? start() : logout();
 </script>

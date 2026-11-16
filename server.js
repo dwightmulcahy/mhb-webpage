@@ -84,7 +84,39 @@ function writeStore(name, data) {
   try { fs.copyFileSync(s.path, s.path + '.bak'); } catch { /* first save */ }
   writeAtomic(s.path, JSON.stringify(data, null, 2));
   cache.set(name, data);
+  snapshot(name, data);
 }
+
+// ---------- version history ----------
+// Every save is also kept as DATA_DIR/history/<store>/<time>.json (newest HISTORY_KEEP per store), so staff
+// can look back and restore an earlier version from /admin.
+const HISTORY_DIR = path.join(DATA_DIR, 'history');
+const HISTORY_KEEP = Number(process.env.HISTORY_KEEP || 50);
+const HIST_ID = /^\d{8}T\d{9}Z(-\d+)?$/;
+function snapshot(name, data) {
+  try {
+    const dir = path.join(HISTORY_DIR, name);
+    fs.mkdirSync(dir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[-:.]/g, '');
+    let id = stamp, n = 0;
+    while (fs.existsSync(path.join(dir, id + '.json'))) id = `${stamp}-${++n}`;
+    writeAtomic(path.join(dir, id + '.json'), JSON.stringify(data));
+    const all = listHistory(name);
+    for (const old of all.slice(HISTORY_KEEP)) fs.unlinkSync(path.join(dir, old.id + '.json'));
+  } catch (e) { log('WARNING', { message: `history snapshot failed: ${e.message}`, store: name }); }
+}
+function listHistory(name) {
+  const dir = path.join(HISTORY_DIR, name);
+  let files = [];
+  try { files = fs.readdirSync(dir).filter((f) => f.endsWith('.json') && HIST_ID.test(f.slice(0, -5))); } catch { return []; }
+  return files.map((f) => {
+    const id = f.slice(0, -5);
+    const st = fs.statSync(path.join(dir, f));
+    return { id, savedAt: st.mtime.toISOString(), bytes: st.size };
+  }).sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true }));
+}
+// First run with this feature: record the current state so there's something to go back to.
+for (const name of Object.keys(STORES)) if (!listHistory(name).length) snapshot(name, readStore(name));
 
 // ---------- validation ----------
 const ITEM_TYPES = new Set(['beer', 'divider', 'text']);
@@ -306,6 +338,25 @@ async function handleApi(req, res, route) {
     const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
     fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
     return send(req, res, 200, JSON.stringify({ path: `/uploads/${name}` }));
+  }
+  if (route === 'backup') {
+    if (req.method !== 'GET') return jsonErr(req, res, 405, 'method not allowed');
+    if (!requireAuth(req, res)) return;
+    const stores = Object.fromEntries(Object.keys(STORES).map((n) => [n, readStore(n)]));
+    const stamp = new Date().toISOString().slice(0, 10);
+    return send(req, res, 200, JSON.stringify({ format: 'mhb-backup', version: 1, createdAt: new Date().toISOString(), app: BUILD.version, stores }, null, 2),
+      undefined, { 'Cache-Control': 'no-store', 'Content-Disposition': `attachment; filename="mhb-backup-${stamp}.json"` });
+  }
+  const hist = route.match(/^history\/(\w+)(?:\/([\w-]+))?$/);
+  if (hist) {
+    if (req.method !== 'GET') return jsonErr(req, res, 405, 'method not allowed');
+    if (!STORES[hist[1]]) return jsonErr(req, res, 404, 'not found');
+    if (!requireAuth(req, res)) return;
+    if (!hist[2]) return send(req, res, 200, JSON.stringify(listHistory(hist[1])), undefined, { 'Cache-Control': 'no-store' });
+    if (!HIST_ID.test(hist[2])) return jsonErr(req, res, 404, 'not found');
+    const f = path.join(HISTORY_DIR, hist[1], hist[2] + '.json');
+    if (!fs.existsSync(f)) return jsonErr(req, res, 404, 'not found');
+    return send(req, res, 200, fs.readFileSync(f), undefined, { 'Cache-Control': 'no-store' });
   }
   const store = STORES[route];
   if (!store) return jsonErr(req, res, 404, 'not found');
@@ -570,7 +621,7 @@ const server = http.createServer((req, res) => {
     if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
-    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|login|upload)$/);
+    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|login|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, 'method not allowed', 'text/plain');
