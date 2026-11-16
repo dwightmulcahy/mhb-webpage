@@ -32,9 +32,9 @@ async function startServer(env = {}) {
     base, dataDir, logs: () => out,
     req: (p, opts = {}) => fetch(base + p, { redirect: 'manual', ...opts }),
     auth: (extra = {}) => ({ Authorization: 'Bearer ' + PASSWORD, ...extra }),
-    async stop() {
+    async stop({ keepData = false } = {}) {
       if (child.exitCode === null) { child.kill('SIGTERM'); await new Promise((r) => child.once('exit', r)); }
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      if (!keepData) fs.rmSync(dataDir, { recursive: true, force: true });
     },
   };
 }

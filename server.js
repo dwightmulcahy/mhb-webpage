@@ -10,6 +10,7 @@ const path = require('path');
 const crypto = require('crypto');
 const zlib = require('zlib');
 const vm = require('vm');
+const net = require('net');
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
@@ -203,9 +204,26 @@ const jsonErr = (req, res, code, msg) => send(req, res, code, JSON.stringify({ e
 // Brute-force guard: 10 wrong passwords per IP per 15 minutes, then 429 until the window resets.
 const FAILS = new Map(); // ip -> { n, reset }
 const FAIL_LIMIT = 10, FAIL_WINDOW = 15 * 60 * 1000;
+// Persisted so a container restart doesn't hand an attacker a fresh 10 tries.
+const FAILS_FILE = path.join(DATA_DIR, '.lockouts.json');
+try {
+  const now = Date.now();
+  for (const [ip, f] of Object.entries(JSON.parse(fs.readFileSync(FAILS_FILE, 'utf8')))) if (f && f.reset > now) FAILS.set(ip, f);
+} catch { /* none yet */ }
+let failsTimer = null;
+function saveFails() {
+  if (failsTimer) return;
+  failsTimer = setTimeout(() => {
+    failsTimer = null;
+    const now = Date.now();
+    try { writeAtomic(FAILS_FILE, JSON.stringify(Object.fromEntries([...FAILS].filter(([, f]) => f.reset > now)))); }
+    catch (e) { log('WARNING', { message: `could not save lockouts: ${e.message}` }); }
+  }, 500);
+  failsTimer.unref();
+}
 function lockedOut(req) {
   const f = FAILS.get(clientIp(req));
-  if (f && Date.now() > f.reset) { FAILS.delete(clientIp(req)); return false; }
+  if (f && Date.now() > f.reset) { FAILS.delete(clientIp(req)); saveFails(); return false; }
   return !!f && f.n >= FAIL_LIMIT;
 }
 function noteFail(req) {
@@ -213,11 +231,13 @@ function noteFail(req) {
   const f = FAILS.get(ip);
   if (!f || now > f.reset) FAILS.set(ip, { n: 1, reset: now + FAIL_WINDOW }); else f.n++;
   if (FAILS.size > 10000) for (const [k, v] of FAILS) if (now > v.reset) FAILS.delete(k);
+  if (FAILS.get(ip).n >= FAIL_LIMIT) log('WARNING', { message: 'login locked out', client: ip });
+  saveFails();
 }
 // Returns true, or sends 401/429 and returns false.
 function requireAuth(req, res) {
   if (lockedOut(req)) { jsonErr(req, res, 429, 'too many attempts, try again later'); return false; }
-  if (authorized(req)) { FAILS.delete(clientIp(req)); return true; }
+  if (authorized(req)) { if (FAILS.delete(clientIp(req))) saveFails(); return true; }
   noteFail(req);
   jsonErr(req, res, 401, 'unauthorized');
   return false;
@@ -468,8 +488,28 @@ function serveFile(req, res, root, rel, extra = {}) {
   });
 }
 
-// Real visitor IP: Cloudflare sets cf-connecting-ip; other proxies X-Forwarded-For.
-const clientIp = (req) => req.headers['cf-connecting-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
+// Real visitor IP. CF-Connecting-IP / X-Forwarded-For are only believed when the connection comes from a
+// trusted proxy (cloudflared, the NAS reverse proxy); otherwise anyone could rotate the header to dodge the
+// login lockout. TRUSTED_PROXIES: comma-separated IPs/CIDRs, "*" = trust everyone, default = loopback + private.
+const TRUSTED = (() => {
+  const spec = (process.env.TRUSTED_PROXIES || '127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7,fe80::/10').trim();
+  if (spec === '*') return null;
+  const bl = new net.BlockList();
+  for (const part of spec.split(',').map((x) => x.trim()).filter(Boolean)) {
+    const [addr, bits] = part.split('/');
+    const type = net.isIPv6(addr) ? 'ipv6' : 'ipv4';
+    if (!net.isIP(addr)) { log('WARNING', { message: `TRUSTED_PROXIES: ignoring "${part}"` }); continue; }
+    if (bits === undefined) bl.addAddress(addr, type); else bl.addSubnet(addr, parseInt(bits, 10), type);
+  }
+  return bl;
+})();
+function fromTrustedProxy(req) {
+  if (!TRUSTED) return true;
+  let a = req.socket.remoteAddress || '';
+  if (a.startsWith('::ffff:') && net.isIPv4(a.slice(7))) a = a.slice(7);
+  return net.isIP(a) ? TRUSTED.check(a, net.isIPv6(a) ? 'ipv6' : 'ipv4') : false;
+}
+const clientIp = (req) => (fromTrustedProxy(req) && (req.headers['cf-connecting-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim())) || req.socket.remoteAddress;
 
 const server = http.createServer((req, res) => {
   const t0 = process.hrtime.bigint();
