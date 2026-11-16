@@ -78,3 +78,6 @@ docker build --build-arg APP_VERSION=$(git describe --tags --always) \
 
 ## Security
 See [SECURITY.md](SECURITY.md). Release history: [CHANGELOG.md](CHANGELOG.md).
+
+## License
+All rights reserved. See [LICENSE](LICENSE).
