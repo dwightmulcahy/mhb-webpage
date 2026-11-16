@@ -26,6 +26,7 @@ Each save keeps the previous version as `<file>.bak`. If a file ever becomes unr
 ## Settings
 - `ADMIN_PASSWORD`: required for editing.
 - `SECURITY_CONTACT`: contact URI in `/.well-known/security.txt` (`mailto:`, `https:` or `tel:`). Defaults to the brewery phone.
+- `TRUSTED_PROXIES`: IPs/CIDRs allowed to set `CF-Connecting-IP` / `X-Forwarded-For` (default: loopback and private networks, i.e. cloudflared or the NAS proxy). `*` trusts everyone.
 - `SITE_URL`: your public address, e.g. `https://monkeyheadbrewing.com`. Used for canonical links, the sitemap and social previews. If unset, the request's host is used.
 
 ## Run locally
