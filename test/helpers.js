@@ -28,10 +28,17 @@ async function startServer(env = {}) {
     if (child.exitCode !== null) throw new Error('server exited:\n' + out);
     await new Promise((r) => setTimeout(r, 50));
   }
+  // Log in as the built-in admin once; auth() then sends the session token like /admin does.
+  let token = '';
+  const pw = env.ADMIN_PASSWORD === undefined ? PASSWORD : env.ADMIN_PASSWORD;
+  if (pw) {
+    const r = await fetch(base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+    if (r.ok) token = (await r.json()).token;
+  }
   return {
-    base, dataDir, logs: () => out,
+    base, dataDir, logs: () => out, token: () => token,
     req: (p, opts = {}) => fetch(base + p, { redirect: 'manual', ...opts }),
-    auth: (extra = {}) => ({ Authorization: 'Bearer ' + PASSWORD, ...extra }),
+    auth: (extra = {}) => ({ Authorization: 'Bearer ' + token, ...extra }),
     async stop({ keepData = false } = {}) {
       if (child.exitCode === null) { child.kill('SIGTERM'); await new Promise((r) => child.once('exit', r)); }
       if (!keepData) fs.rmSync(dataDir, { recursive: true, force: true });

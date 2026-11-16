@@ -2,7 +2,7 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { startServer } = require('./helpers');
+const { startServer, PASSWORD } = require('./helpers');
 
 let s;
 before(async () => { s = await startServer(); });
@@ -27,7 +27,7 @@ test('GET stores is public and not cached', async () => {
 });
 
 test('login', async () => {
-  assert.equal((await s.req('/api/login', { method: 'POST', headers: s.auth() })).status, 200);
+  assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + PASSWORD } })).status, 200, 'legacy bearer-password login');
   assert.equal((await s.req('/api/login', { method: 'GET' })).status, 405);
 });
 
@@ -122,6 +122,6 @@ test('brute-force lockout after 10 wrong passwords (per client IP)', async () =>
     assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer wrong', ...ip } })).status, 401);
   }
   assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer wrong', ...ip } })).status, 429);
-  assert.equal((await s.req('/api/login', { method: 'POST', headers: s.auth(ip) })).status, 429, 'even the right password while locked');
-  assert.equal((await s.req('/api/login', { method: 'POST', headers: s.auth({ 'CF-Connecting-IP': '203.0.113.78' }) })).status, 200, 'other IPs unaffected');
+  assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + PASSWORD, ...ip } })).status, 429, 'even the right password while locked');
+  assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + PASSWORD, 'CF-Connecting-IP': '203.0.113.78' } })).status, 200, 'other IPs unaffected');
 });

@@ -6,7 +6,7 @@ Node 22 server with no dependencies, packaged as a Docker image.
 |---|---|
 | `/` and `/es` | Public site, English and Spanish, rendered on the server for search engines. The toggle in the nav switches between them. |
 | `/board` | Full-screen chalkboard taplist for the taproom TV. Refreshes every 30 s; `?lang=es` for Spanish. |
-| `/admin` | Staff editor with **Taplist**, **Events**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap**, **Follow Us** and **Visit & Contact** tabs. Password is `ADMIN_PASSWORD`. |
+| `/admin` | Staff editor with **Taplist**, **Events**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap**, **Follow Us** and **Visit & Contact** tabs, plus **Staff** (accounts + activity log). See *Staff accounts* below. |
 | `/sitemap.xml`, `/robots.txt` | Generated automatically; submit the sitemap in Google Search Console. |
 
 ## Data (in `./data`, survives rebuilds)
@@ -29,8 +29,14 @@ Each save keeps the previous version as `<file>.bak`. If a file ever becomes unr
 - **Download a backup**: **Backup** in the admin nav downloads every list as one JSON file (`/api/backup`).
 - **Full backups** (including uploaded images): back up the whole `./data` folder, for example a nightly QNAP **Hybrid Backup Sync** job to another disk or the cloud. To restore, stop the container, put the folder back, and start it again.
 
+## Staff accounts
+- `ADMIN_PASSWORD` is the built-in **admin** owner account: leave **Name** blank (or type `admin`) when logging in.
+- In `/admin` → **Staff**, owners add named accounts: **owner** (everything) or **editor** (lists only; can't manage accounts or see activity). Passwords are stored as scrypt hashes in `data/users.json`.
+- Logging in gives a session token (the password isn't sent again). Sessions end after 12 h idle or 7 days (`SESSION_IDLE_HOURS`, `SESSION_MAX_DAYS`), on **Log out**, or when an owner changes that person's role or password or removes them.
+- **Recent activity** (owners) lists logins, failed logins, saves (with what changed), uploads and account changes, with the user and IP. It's stored in `data/audit.log`, and each entry also goes to `docker logs`.
+
 ## Settings
-- `ADMIN_PASSWORD`: required for editing.
+- `ADMIN_PASSWORD`: password of the built-in `admin` owner. Needed until at least one owner account exists.
 - `SECURITY_CONTACT`: contact URI in `/.well-known/security.txt` (`mailto:`, `https:` or `tel:`). Defaults to the brewery phone.
 - `TRUSTED_PROXIES`: IPs/CIDRs allowed to set `CF-Connecting-IP` / `X-Forwarded-For` (default: loopback and private networks, i.e. cloudflared or the NAS proxy). `*` trusts everyone.
 - `SITE_URL`: your public address, e.g. `https://monkeyheadbrewing.com`. Used for canonical links, the sitemap and social previews. If unset, the request's host is used.

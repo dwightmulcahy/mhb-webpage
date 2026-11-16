@@ -69,19 +69,30 @@
   dialog.hist li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px dashed #eee3cc; }
   dialog.hist li small { color: var(--muted); }
   dialog.hist .cur { font-weight: 700; color: #2fa84f; }
+  .staff h3 { font-size: 1.6rem; margin: 26px 0 10px; }
+  .staff .box { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .staff table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  .staff th { text-align: left; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid #eee3cc; }
+  .staff td { padding: 6px 8px; border-bottom: 1px dashed #eee3cc; vertical-align: middle; }
+  .staff td input, .staff td select { padding: 6px 8px; }
+  .staff .pwrow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+  .staff .note { color: var(--muted); font-size: .9rem; }
+  .staff .act-save { color: #2a7a3f; } .staff .act-login_failed { color: #c8202a; }
+  .nav .who { color: var(--cream); font-weight: 600; }
+  @media (max-width: 760px) { .staff .pwrow { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<nav class="nav"><div class="wrap"><a class="brand" href="/"><img src="/img/mark.png" alt="">Staff Admin</a><span class="build" id="build" title=""></span><ul><li class="keep"><a href="/board" target="_blank">TV board</a></li><li class="keep"><a href="#" id="backup" title="Download every list as one JSON file">Backup</a></li><li class="keep"><a href="#" id="logout">Log out</a></li></ul></div></nav>
+<nav class="nav"><div class="wrap"><a class="brand" href="/"><img src="/img/mark.png" alt="">Staff Admin</a><span class="build" id="build" title=""></span><ul><li class="keep"><a href="/board" target="_blank">TV board</a></li><li class="keep"><a href="#" id="backup" title="Download every list as one JSON file">Backup</a></li><li class="keep"><span class="who" id="who"></span></li><li class="keep"><a href="#" id="logout">Log out</a></li></ul></div></nav>
 
 <div class="login" id="login" hidden>
   <h2 style="font-size:2.2rem;margin-bottom:14px">Staff login</h2>
-  <form id="loginForm"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required><p id="loginErr" style="color:#c8202a;min-height:1.2em"></p><button class="primary" type="submit">Log in</button></form>
+  <form id="loginForm"><label for="user">Name</label><input id="user" autocomplete="username" placeholder="admin" style="margin-bottom:12px"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required><p id="loginErr" style="color:#c8202a;min-height:1.2em"></p><button class="primary" type="submit">Log in</button></form>
 </div>
 
 <main id="app" hidden>
   <div class="wrap">
-    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button><button data-tab="info">Visit &amp; Contact</button></div>
+    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button><button data-tab="info">Visit &amp; Contact</button><button data-tab="staff">Staff</button></div>
     <div id="tabTaps">
     <p style="color:var(--muted);margin-top:0">Uses the <b>TapListBuilder</b> JSON format. Import a file exported from TapListBuilder, or edit here and Export to take it back. Items in the list = on tap; <b>Off tap</b> moves a beer to Saved beverages. Changes go live on <b>Save &amp; publish</b>.</p>
     <div class="toolbar">
@@ -98,6 +109,18 @@
       <div id="collSettings"></div>
       <div id="collRows"></div>
       <div class="toolbar"><button id="addColl">+ Add</button></div>
+    </div>
+    <div id="tabStaff" class="staff" hidden>
+      <h3 style="margin-top:0">My account</h3>
+      <div class="box" id="myAccount"></div>
+      <div id="ownerOnly" hidden>
+        <h3>Staff accounts</h3>
+        <p class="note">Owners can do everything; editors can edit the lists but not manage accounts or see activity. Leave “New password” blank to keep it. Changing someone's role or password signs them out.</p>
+        <div class="box"><table><thead><tr><th>Name</th><th>Role</th><th>New password</th><th></th></tr></thead><tbody id="userRows"></tbody></table>
+          <div class="toolbar" style="margin-bottom:0"><button type="button" id="addUser">+ Add person</button><span style="flex:1"></span><span id="userMsg" class="note"></span><button type="button" class="primary" id="saveUsers">Save accounts</button></div></div>
+        <h3>Recent activity</h3>
+        <div class="box"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>IP</th></tr></thead><tbody id="auditRows"></tbody></table></div>
+      </div>
     </div>
   </div>
 </main>
@@ -167,7 +190,9 @@ function dirty() {
 document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
   tab = b.dataset.tab;
   document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
-  $('#tabTaps').hidden = tab !== 'taps'; $('#tabColl').hidden = tab === 'taps';
+  $('#tabTaps').hidden = tab !== 'taps'; $('#tabColl').hidden = tab === 'taps' || tab === 'staff'; $('#tabStaff').hidden = tab !== 'staff';
+  $('#bar').hidden = tab === 'staff';
+  if (tab === 'staff') return renderStaff();
   if (tab !== 'taps') renderColl();
   dirty();
 });
@@ -353,19 +378,27 @@ $('#save').onclick = async () => {
   else { doc = data; saved = JSON.stringify(doc); render(); }
 };
 
+let me = null;
 async function start() {
-  const r = await fetch('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  const r = await fetch('/api/me', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
   if (!r.ok) return logout();
+  me = await r.json();
+  $('#who').textContent = `${me.user} · ${me.role}`;
   $('#login').hidden = true; $('#app').hidden = false; $('#bar').hidden = false;
   doc = await MHB.load(); saved = JSON.stringify(doc); render();
   for (const n of Object.keys(MHB_SCHEMAS)) { const d = await MHB.load('/api/' + n); COLL[n] = { doc: d, saved: JSON.stringify(d) }; }
 }
-function logout() { token = ''; sessionStorage.removeItem('mhb_token'); $('#login').hidden = false; $('#app').hidden = true; $('#bar').hidden = true; }
+function logout() {
+  if (token) fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+  token = ''; me = null; sessionStorage.removeItem('mhb_token'); $('#who').textContent = '';
+  $('#login').hidden = false; $('#app').hidden = true; $('#bar').hidden = true;
+}
 $('#logout').onclick = (e) => { e.preventDefault(); logout(); };
 $('#loginForm').onsubmit = async (e) => {
-  e.preventDefault(); token = $('#pw').value;
-  const r = await fetch('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
-  if (!r.ok) return ($('#loginErr').textContent = r.status === 429 ? 'Too many attempts — wait 15 minutes' : 'Wrong password');
+  e.preventDefault();
+  const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: $('#user').value, password: $('#pw').value }) });
+  if (!r.ok) return ($('#loginErr').textContent = r.status === 429 ? 'Too many attempts — wait 15 minutes' : 'Wrong name or password');
+  token = (await r.json()).token; $('#pw').value = '';
   sessionStorage.setItem('mhb_token', token); start();
 };
 window.addEventListener('beforeunload', (e) => { if ((doc && JSON.stringify(doc) !== saved) || Object.keys(COLL).some(collDirty)) e.preventDefault(); });
@@ -414,6 +447,52 @@ $('#backup').onclick = async (e) => {
   a.download = (r.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'mhb-backup.json';
   a.click(); URL.revokeObjectURL(a.href);
 };
+// ---------- Staff tab: my password, accounts (owners), activity (owners) ----------
+const api = (url, opts = {}) => fetch(url, { ...opts, cache: 'no-store', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, ...(opts.headers || {}) } });
+let users = [];
+async function renderStaff() {
+  $('#myAccount').innerHTML = me.builtin
+    ? `<p class="note" style="margin:0">Signed in as the built-in <b>admin</b> (password = <code>ADMIN_PASSWORD</code> on the server). Add named accounts below so each person has their own login and shows up in the activity log.</p>`
+    : `<form id="pwForm" class="pwrow"><div><label>Current password</label><input type="password" id="pwCur" autocomplete="current-password" required></div><div><label>New password (10+ characters)</label><input type="password" id="pwNew" autocomplete="new-password" minlength="10" required></div><button class="primary" type="submit">Change password</button></form><p class="note" id="pwMsg" style="margin:8px 0 0"></p>`;
+  $('#ownerOnly').hidden = me.role !== 'owner';
+  if (me.role !== 'owner') return;
+  const [u, a] = await Promise.all([api('/api/users'), api('/api/audit?limit=100')]);
+  if (u.status === 401) return logout();
+  users = (await u.json()).users.map((x) => ({ ...x, password: '' }));
+  drawUsers();
+  const fmt = (iso) => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  const what = (e) => ({ save: `Saved ${e.store}${e.detail ? ' — ' + e.detail : ''}`, upload: `Uploaded ${e.file}`, login: 'Logged in', logout: 'Logged out', login_failed: 'Failed login', users: `Accounts: ${e.detail || ''}`, password_changed: 'Changed own password' }[e.action] || e.action);
+  const log = await a.json();
+  $('#auditRows').innerHTML = log.map((e) => `<tr><td>${esc(fmt(e.time))}</td><td>${esc(e.user || '—')}</td><td class="act-${esc(e.action)}">${esc(what(e))}</td><td>${esc(e.ip || '')}</td></tr>`).join('') || '<tr><td colspan="4" class="note">Nothing yet.</td></tr>';
+}
+function drawUsers() {
+  $('#userRows').innerHTML = users.map((x, i) => `<tr data-i="${i}"><td><input data-u="name" value="${esc(x.name)}" ${x.created ? 'readonly' : ''}></td>
+    <td><select data-u="role">${['editor', 'owner'].map((r) => `<option ${r === x.role ? 'selected' : ''}>${r}</option>`).join('')}</select></td>
+    <td><input data-u="password" type="password" autocomplete="new-password" placeholder="${x.created ? 'unchanged' : 'required'}" value="${esc(x.password)}"></td>
+    <td><button type="button" class="danger mv" data-del>✕</button></td></tr>`).join('') || '<tr><td colspan="4" class="note">No named accounts yet — only the built-in admin.</td></tr>';
+}
+$('#userRows').addEventListener('input', (e) => { const k = e.target.dataset.u; if (k) users[+e.target.closest('tr').dataset.i][k] = e.target.value; });
+$('#userRows').addEventListener('click', (e) => {
+  if (!e.target.matches('[data-del]')) return;
+  const i = +e.target.closest('tr').dataset.i;
+  if (confirm(`Remove ${users[i].name || 'this person'}? (takes effect on Save accounts)`)) { users.splice(i, 1); drawUsers(); }
+});
+$('#addUser').onclick = () => { users.push({ name: '', role: 'editor', password: '' }); drawUsers(); };
+$('#saveUsers').onclick = async () => {
+  const r = await api('/api/users', { method: 'PUT', body: JSON.stringify({ users: users.map(({ name, role, password }) => ({ name, role, ...(password ? { password } : {}) })) }) });
+  if (r.status === 401) return logout();
+  const d = await r.json();
+  $('#userMsg').textContent = r.ok ? 'Saved ✓' : d.error;
+  if (r.ok) renderStaff();
+};
+document.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'pwForm') return;
+  e.preventDefault();
+  const r = await api('/api/me', { method: 'PUT', body: JSON.stringify({ current: $('#pwCur').value, password: $('#pwNew').value }) });
+  const d = await r.json();
+  if (r.ok) { token = d.token; sessionStorage.setItem('mhb_token', token); e.target.reset(); }
+  $('#pwMsg').textContent = r.ok ? 'Password changed ✓ — other devices were signed out.' : d.error;
+});
 $('#importBtn').onclick = () => $('#importFile').click(); // no inline handlers (CSP)
 token ? start() : logout();
 </script>
