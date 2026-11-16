@@ -23,6 +23,11 @@ To reset to the seed data, delete the matching file and restart the container.
 
 Each save keeps the previous version as `<file>.bak`. If a file ever becomes unreadable, the server sets it aside as `<file>.corrupt-<time>`, restores the `.bak` (or the seed if there's no `.bak`), and logs an `ERROR`, so the site stays up.
 
+## History, undo and backups
+- **Undo a bad save**: in `/admin`, **⟲ History** (bottom bar) lists the last 50 saved versions of the current tab (`HISTORY_KEEP`). **Load** puts that version in the editor; **Save & publish** restores it, **Revert** cancels. Versions live in `data/history/<list>/`.
+- **Download a backup**: **Backup** in the admin nav downloads every list as one JSON file (`/api/backup`).
+- **Full backups** (including uploaded images): back up the whole `./data` folder, for example a nightly QNAP **Hybrid Backup Sync** job to another disk or the cloud. To restore, stop the container, put the folder back, and start it again.
+
 ## Settings
 - `ADMIN_PASSWORD`: required for editing.
 - `SECURITY_CONTACT`: contact URI in `/.well-known/security.txt` (`mailto:`, `https:` or `tel:`). Defaults to the brewery phone.
