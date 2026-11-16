@@ -30,7 +30,6 @@ const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 
 // One JSON object per line on stdout (docker logs) — the format logwatch.py parses.
 const log = (level, fields) => process.stdout.write(JSON.stringify({ timestamp: new Date().toISOString(), level, ...fields }) + '\n');
-if (!ADMIN_PASSWORD) log('WARNING', { message: 'ADMIN_PASSWORD not set — editing disabled' });
 if (!SITE_URL) log('WARNING', { message: 'SITE_URL not set — canonical/sitemap URLs will use the request Host header' });
 
 // ---------- shared browser code, loaded for server-side rendering ----------
@@ -275,22 +274,113 @@ function noteFail(req) {
   if (FAILS.get(ip).n >= FAIL_LIMIT) log('WARNING', { message: 'login locked out', client: ip });
   saveFails();
 }
-// Returns true, or sends 401/429 and returns false.
-function requireAuth(req, res) {
-  if (lockedOut(req)) { jsonErr(req, res, 429, 'too many attempts, try again later'); return false; }
-  if (authorized(req)) { if (FAILS.delete(clientIp(req))) saveFails(); return true; }
-  noteFail(req);
-  jsonErr(req, res, 401, 'unauthorized');
-  return false;
+// ---------- staff accounts, sessions, audit log ----------
+// Accounts live in DATA_DIR/users.json (scrypt hashes). ADMIN_PASSWORD stays as the built-in "admin" owner, so
+// existing setups keep working and an owner can never be locked out of creating accounts.
+// Logging in returns a random session token; the password itself is never sent again.
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const SESS_FILE = path.join(DATA_DIR, '.sessions.json');
+const AUDIT_FILE = path.join(DATA_DIR, 'audit.log');
+const ROLES = ['owner', 'editor'];
+const SESSION_IDLE = Number(process.env.SESSION_IDLE_HOURS || 12) * 3600e3;
+const SESSION_MAX = Number(process.env.SESSION_MAX_DAYS || 7) * 864e5;
+const SCRYPT = { N: 16384, r: 8, p: 1 };
+function hashPw(pw) {
+  const salt = crypto.randomBytes(16);
+  return `scrypt$${salt.toString('base64')}$${crypto.scryptSync(pw, salt, 32, SCRYPT).toString('base64')}`;
+}
+function checkPw(pw, stored) {
+  const [kind, salt, hash] = String(stored || '').split('$');
+  if (kind !== 'scrypt' || !salt || !hash) return false;
+  const got = crypto.scryptSync(String(pw), Buffer.from(salt, 'base64'), 32, SCRYPT), want = Buffer.from(hash, 'base64');
+  return got.length === want.length && crypto.timingSafeEqual(got, want);
+}
+const DUMMY_HASH = hashPw(crypto.randomBytes(8).toString('hex')); // equalizes timing for unknown names
+const sameSecret = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+
+let USERS = [];
+try { USERS = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')).users || []; } catch { /* no accounts yet */ }
+const saveUsers = () => writeAtomic(USERS_FILE, JSON.stringify({ updated: new Date().toISOString(), users: USERS }, null, 2));
+const findUser = (name) => USERS.find((u) => u.name.toLowerCase() === String(name || '').trim().toLowerCase());
+if (!ADMIN_PASSWORD && !USERS.some((u) => u.role === 'owner')) log('WARNING', { message: 'ADMIN_PASSWORD not set and no owner account — editing disabled' });
+
+function verifyLogin(name, pw) {
+  name = String(name || '').trim();
+  if ((!name || name.toLowerCase() === 'admin') && ADMIN_PASSWORD && !findUser('admin')) {
+    return sameSecret(pw, ADMIN_PASSWORD) ? { name: 'admin', role: 'owner' } : null;
+  }
+  const u = findUser(name);
+  const ok = checkPw(pw, u ? u.hash : DUMMY_HASH);
+  return u && ok ? { name: u.name, role: u.role } : null;
 }
 
-function authorized(req) {
-  if (!ADMIN_PASSWORD) return false;
-  const h = req.headers.authorization || '';
-  const given = Buffer.from(h.startsWith('Bearer ') ? h.slice(7) : '');
-  const want = Buffer.from(ADMIN_PASSWORD);
-  return given.length === want.length && crypto.timingSafeEqual(given, want);
+// Sessions: only the SHA-256 of each token is kept (memory + .sessions.json, so restarts don't log staff out).
+const SESSIONS = new Map(); // sha256(token) -> { name, role, created, seen }
+const tokenKey = (t) => crypto.createHash('sha256').update(t).digest('hex');
+try {
+  const now = Date.now();
+  for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(SESS_FILE, 'utf8')))) if (v && now - v.seen < SESSION_IDLE && now - v.created < SESSION_MAX) SESSIONS.set(k, v);
+} catch { /* none yet */ }
+let sessTimer = null;
+function saveSessions() {
+  if (sessTimer) return;
+  sessTimer = setTimeout(() => {
+    sessTimer = null;
+    try { writeAtomic(SESS_FILE, JSON.stringify(Object.fromEntries(SESSIONS))); } catch (e) { log('WARNING', { message: `could not save sessions: ${e.message}` }); }
+  }, 1000);
+  sessTimer.unref();
 }
+function newSession(user) {
+  const token = crypto.randomBytes(32).toString('base64url');
+  const now = Date.now();
+  SESSIONS.set(tokenKey(token), { name: user.name, role: user.role, created: now, seen: now });
+  saveSessions();
+  return token;
+}
+const bearer = (req) => { const h = req.headers.authorization || ''; return h.startsWith('Bearer ') ? h.slice(7) : ''; };
+function sessionFor(req) {
+  const t = bearer(req); if (!t) return null;
+  const k = tokenKey(t), s = SESSIONS.get(k), now = Date.now();
+  if (!s) return null;
+  // Expired, or the account was deleted/changed role since login -> session is gone.
+  const u = s.name === 'admin' && !findUser('admin') ? (ADMIN_PASSWORD ? { name: 'admin', role: 'owner' } : null) : findUser(s.name);
+  if (!u || now - s.seen > SESSION_IDLE || now - s.created > SESSION_MAX || u.sessionsAfter > s.created) { SESSIONS.delete(k); saveSessions(); return null; }
+  s.role = u.role;
+  if (now - s.seen > 60e3) { s.seen = now; saveSessions(); }
+  return { key: k, ...s };
+}
+// Returns the session user, or sends 401/403 and returns null.
+function requireAuth(req, res, role) {
+  const s = sessionFor(req);
+  if (!s) { jsonErr(req, res, 401, 'unauthorized'); return null; }
+  if (role === 'owner' && s.role !== 'owner') { jsonErr(req, res, 403, 'owners only'); return null; }
+  req.user = s.name;
+  return s;
+}
+
+// Audit log: one JSON object per line. Trimmed to the newest AUDIT_KEEP lines when it grows past ~1 MB.
+const AUDIT_KEEP = 3000;
+function audit(req, action, fields = {}) {
+  const entry = { time: new Date().toISOString(), user: req.user || fields.user || null, action, ip: clientIp(req), ...fields };
+  try {
+    fs.appendFileSync(AUDIT_FILE, JSON.stringify(entry) + '\n');
+    if (fs.statSync(AUDIT_FILE).size > 1_000_000) writeAtomic(AUDIT_FILE, readAudit(AUDIT_KEEP).reverse().map((e) => JSON.stringify(e)).join('\n') + '\n');
+  } catch (e) { log('WARNING', { message: `audit write failed: ${e.message}` }); }
+  log('INFO', { message: 'audit', ...entry });
+}
+function readAudit(limit) {
+  let lines = [];
+  try { lines = fs.readFileSync(AUDIT_FILE, 'utf8').trim().split('\n'); } catch { return []; }
+  return lines.slice(-limit).reverse().map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+}
+// What changed, in a few words, for the audit log.
+function summarize(name, before, after) {
+  if (name === 'taps') return `${MHB.beers(after).length} on tap (was ${before ? MHB.beers(before).length : '?'})`;
+  const key = STORES[name].schema && SCHEMAS[STORES[name].schema].listKey;
+  const n = (d) => (d && Array.isArray(d[key]) ? d[key].length : 0);
+  return key ? `${n(after)} item(s) (was ${n(before)})` : 'saved';
+}
+
 function readBody(req, limit) {
   return new Promise((resolve, reject) => {
     let size = 0; const chunks = [];
@@ -335,7 +425,77 @@ function canonicalRedirect(req) {
 async function handleApi(req, res, route) {
   if (route === 'login') {
     if (req.method !== 'POST') return jsonErr(req, res, 405, 'method not allowed');
-    return requireAuth(req, res) && send(req, res, 200, '{"ok":true}');
+    if (lockedOut(req)) return jsonErr(req, res, 429, 'too many attempts, try again later');
+    let body = {};
+    try { const raw = (await readBody(req, 10_000)).toString('utf8'); body = raw ? JSON.parse(raw) : {}; } catch { return jsonErr(req, res, 400, 'bad request'); }
+    // {user, password} in the body; "Authorization: Bearer <password>" still works for the built-in admin.
+    const pw = typeof body.password === 'string' ? body.password : bearer(req);
+    const user = pw ? verifyLogin(body.user, pw) : null;
+    if (!user) {
+      noteFail(req);
+      audit(req, 'login_failed', { user: String(body.user || 'admin').slice(0, 40) });
+      return jsonErr(req, res, 401, 'wrong name or password');
+    }
+    if (FAILS.delete(clientIp(req))) saveFails();
+    req.user = user.name;
+    audit(req, 'login');
+    return send(req, res, 200, JSON.stringify({ ok: true, token: newSession(user), user: user.name, role: user.role, idleHours: SESSION_IDLE / 3600e3 }), undefined, { 'Cache-Control': 'no-store' });
+  }
+  if (route === 'logout') {
+    if (req.method !== 'POST') return jsonErr(req, res, 405, 'method not allowed');
+    const sess = sessionFor(req);
+    if (sess) { req.user = sess.name; SESSIONS.delete(sess.key); saveSessions(); audit(req, 'logout'); }
+    return send(req, res, 200, '{"ok":true}');
+  }
+  if (route === 'me') {
+    const sess = requireAuth(req, res); if (!sess) return;
+    if (req.method === 'GET') return send(req, res, 200, JSON.stringify({ user: sess.name, role: sess.role, builtin: sess.name === 'admin' && !findUser('admin') }), undefined, { 'Cache-Control': 'no-store' });
+    if (req.method !== 'PUT') return jsonErr(req, res, 405, 'method not allowed');
+    // Change my own password: { current, password }
+    let b; try { b = JSON.parse((await readBody(req, 10_000)).toString('utf8')); } catch { return jsonErr(req, res, 400, 'bad request'); }
+    const u = findUser(sess.name);
+    if (!u) return jsonErr(req, res, 400, 'the built-in admin password is set with ADMIN_PASSWORD on the server');
+    if (!checkPw(b.current, u.hash)) return jsonErr(req, res, 400, 'current password is wrong');
+    if (typeof b.password !== 'string' || b.password.length < 10) return jsonErr(req, res, 400, 'new password: at least 10 characters');
+    u.hash = hashPw(b.password); u.sessionsAfter = Date.now() - 1; saveUsers();
+    audit(req, 'password_changed', { target: u.name });
+    // Other sessions of this user end; this one continues with a fresh token.
+    return send(req, res, 200, JSON.stringify({ ok: true, token: newSession(u) }));
+  }
+  if (route === 'users') {
+    const sess = requireAuth(req, res, 'owner'); if (!sess) return;
+    const pub = () => USERS.map((u) => ({ name: u.name, role: u.role, created: u.created, updated: u.updated }));
+    if (req.method === 'GET') return send(req, res, 200, JSON.stringify({ users: pub(), builtinAdmin: !!ADMIN_PASSWORD && !findUser('admin') }), undefined, { 'Cache-Control': 'no-store' });
+    if (req.method !== 'PUT') return jsonErr(req, res, 405, 'method not allowed');
+    // Full list: [{ name, role, password? }]. A password is required for new accounts and optional (reset) for existing ones.
+    let b; try { b = JSON.parse((await readBody(req, 100_000)).toString('utf8')); } catch { return jsonErr(req, res, 400, 'bad request'); }
+    if (!Array.isArray(b.users) || b.users.length > 50) return jsonErr(req, res, 400, 'expected a "users" array (max 50)');
+    const seen = new Set(), next = [], now = new Date().toISOString(), changes = [];
+    for (const [i, x] of b.users.entries()) {
+      const name = String((x && x.name) || '').trim();
+      if (!/^[\p{L}\p{N} ._-]{2,30}$/u.test(name)) return jsonErr(req, res, 400, `user ${i + 1}: name must be 2–30 letters, numbers, spaces, . _ -`);
+      if (seen.has(name.toLowerCase())) return jsonErr(req, res, 400, `duplicate name "${name}"`);
+      seen.add(name.toLowerCase());
+      if (!ROLES.includes(x.role)) return jsonErr(req, res, 400, `${name}: role must be owner or editor`);
+      const old = findUser(name), pw = x.password ? String(x.password) : '';
+      if (pw && pw.length < 10) return jsonErr(req, res, 400, `${name}: password must be at least 10 characters`);
+      if (!old && !pw) return jsonErr(req, res, 400, `${name}: new accounts need a password`);
+      const u = old ? { ...old, name } : { name, created: now };
+      if (pw) { u.hash = hashPw(pw); u.sessionsAfter = Date.now(); changes.push(old ? `reset password for ${name}` : `added ${name} (${x.role})`); }
+      if (old && old.role !== x.role) { u.sessionsAfter = Date.now(); changes.push(`${name}: ${old.role} → ${x.role}`); }
+      u.role = x.role; u.updated = now;
+      next.push(u);
+    }
+    for (const u of USERS) if (!seen.has(u.name.toLowerCase())) changes.push(`removed ${u.name}`);
+    if (!ADMIN_PASSWORD && !next.some((u) => u.role === 'owner')) return jsonErr(req, res, 400, 'keep at least one owner (or set ADMIN_PASSWORD)');
+    USERS = next; saveUsers();
+    if (changes.length) audit(req, 'users', { detail: changes.join('; ').slice(0, 500) });
+    return send(req, res, 200, JSON.stringify({ users: pub(), builtinAdmin: !!ADMIN_PASSWORD && !findUser('admin') }));
+  }
+  if (route === 'audit') {
+    if (!requireAuth(req, res, 'owner')) return;
+    const limit = Math.min(1000, Math.max(1, parseInt(new URL(req.url, 'http://x').searchParams.get('limit') || '200', 10) || 200));
+    return send(req, res, 200, JSON.stringify(readAudit(limit)), undefined, { 'Cache-Control': 'no-store' });
   }
   if (route === 'upload') {
     if (req.method !== 'POST') return jsonErr(req, res, 405, 'method not allowed');
@@ -346,6 +506,7 @@ async function handleApi(req, res, route) {
     if (!MAGIC[ext](buf)) return jsonErr(req, res, 415, 'file is not a valid JPEG, PNG or WebP image');
     const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
     fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
+    audit(req, 'upload', { file: name, bytes: buf.length });
     return send(req, res, 200, JSON.stringify({ path: `/uploads/${name}` }));
   }
   if (route === 'backup') {
@@ -376,7 +537,9 @@ async function handleApi(req, res, route) {
     if (!requireAuth(req, res)) return;
     try {
       const clean = validate(route, JSON.parse((await readBody(req, 5_000_000)).toString('utf8')));
+      const before = readStore(route);
       writeStore(route, clean);
+      audit(req, 'save', { store: route, detail: summarize(route, before, clean) });
       return send(req, res, 200, JSON.stringify(clean));
     } catch (e) {
       return jsonErr(req, res, 400, e.message);
@@ -621,6 +784,7 @@ const server = http.createServer((req, res) => {
       duration_ms: Math.round(Number(process.hrtime.bigint() - t0) / 1e4) / 100,
       client: clientIp(req), user_agent: req.headers['user-agent'] || '',
       ...(req.url.startsWith('/api/') && req.method !== 'GET' ? { admin: /^Bearer /.test(req.headers.authorization || '') } : {}),
+      ...(req.user ? { user: req.user } : {}),
     });
   });
   let p;
@@ -634,7 +798,7 @@ const server = http.createServer((req, res) => {
     if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
-    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|info|login|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
+    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|info|login|logout|me|users|audit|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, 'method not allowed', 'text/plain');

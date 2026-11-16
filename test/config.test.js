@@ -6,7 +6,7 @@ test('no ADMIN_PASSWORD: editing disabled', async () => {
   const s = await startServer({ ADMIN_PASSWORD: '' });
   try {
     assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' } })).status, 401);
-    assert.match(s.logs(), /ADMIN_PASSWORD not set/);
+    assert.match(s.logs(), /ADMIN_PASSWORD not set and no owner account/);
   } finally { await s.stop(); }
 });
 
