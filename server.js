@@ -437,7 +437,7 @@ function serveFile(req, res, root, rel, extra = {}) {
 // Real visitor IP: Cloudflare sets cf-connecting-ip; other proxies X-Forwarded-For.
 const clientIp = (req) => req.headers['cf-connecting-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
 
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
   const t0 = process.hrtime.bigint();
   res.on('finish', () => {
     const code = res.statusCode;
@@ -479,3 +479,14 @@ http.createServer((req, res) => {
     send(req, res, 500, 'server error', 'text/plain');
   }
 }).listen(PORT, () => log('INFO', { message: `MHB site ${BUILD.version} (${BUILD.commit}) on :${PORT}, data in ${DATA_DIR}` }));
+
+// Graceful shutdown: stop accepting connections, let in-flight requests (e.g. a save) finish, then exit.
+// Docker sends SIGTERM and SIGKILLs after 10 s, so give up after 8 s.
+function shutdown(signal) {
+  log('INFO', { message: `${signal} received, shutting down` });
+  server.close(() => process.exit(0));
+  server.closeIdleConnections();
+  setTimeout(() => { server.closeAllConnections(); process.exit(0); }, 8000).unref();
+}
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
