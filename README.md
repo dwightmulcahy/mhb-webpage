@@ -23,7 +23,15 @@ To reset to the seed data, delete the matching file and restart the container.
 
 ## Settings
 - `ADMIN_PASSWORD`: required for editing.
+- `SECURITY_CONTACT`: contact URI in `/.well-known/security.txt` (`mailto:`, `https:` or `tel:`). Defaults to the brewery phone.
 - `SITE_URL`: your public address, e.g. `https://monkeyheadbrewing.com`. Used for canonical links, the sitemap and social previews. If unset, the request's host is used.
+
+## Run locally
+No install step: Node 22+ and no dependencies.
+```sh
+ADMIN_PASSWORD=dev node server.js        # http://localhost:8080, data in ./data (seeded on first run)
+```
+Optional env: `PORT`, `DATA_DIR`, `SITE_URL`, `SECURITY_CONTACT`. Delete `./data` to start over from `seed/`.
 
 ## Tests
 ```sh
@@ -45,3 +53,6 @@ The version, commit and build date show next to **Staff Admin** in `/admin` (als
 docker build --build-arg APP_VERSION=$(git describe --tags --always) \
   --build-arg GIT_SHA=$(git rev-parse HEAD) --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) -t mhb-web .
 ```
+
+## Security
+See [SECURITY.md](SECURITY.md). Release history: [CHANGELOG.md](CHANGELOG.md).
