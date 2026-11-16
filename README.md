@@ -48,6 +48,13 @@ docker compose pull && docker compose up -d
 
 Release images are published to `ghcr.io/dwightmulcahy/mhb-webpage` (`linux/amd64`, `linux/arm64`) by `.github/workflows/docker-release.yml` on every `v*.*.*` tag. Tags: `X.Y.Z`, `X.Y`, `X`, `latest`, `sha-<short>`. Pin a version with `MHB_TAG=1.2.3` in `.env`. To build locally instead: `docker compose up -d --build`.
 
+### Nightly log report (optional)
+[logwatch](https://github.com/dwightmulcahy/logwatch) reads `docker logs mhb-web` (the server writes one JSON line per request in its format) and emails a nightly report: errors, uptime gaps, probes, users vs. bots.
+```sh
+docker compose -f docker-compose.yml -f docker-compose.logwatch.yml up -d
+```
+Put its secrets in `/share/Data/config/logwatch/.env` (or set `LOGWATCH_ENV_FILE`). For a test email, run once with `LOGWATCH_RUN_ON_START=1`.
+
 The version, commit and build date show next to **Staff Admin** in `/admin` (also at `/api/version`). Release images get them automatically; local builds show "dev build" unless you pass them:
 ```sh
 docker build --build-arg APP_VERSION=$(git describe --tags --always) \
