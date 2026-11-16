@@ -140,9 +140,10 @@ const BASE_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Resource-Policy': 'same-site',
   'X-Permitted-Cross-Domain-Policies': 'none',
 };
-// Content-Security-Policy. Everything (fonts, JS, CSS, images) is self-hosted; inline <script> blocks
+// Content-Security-Policy. Everything (fonts, JS, CSS, images) is self-hosted except the Cloudflare Web Analytics
+// beacon Cloudflare injects; inline <script> blocks
 // (admin, board) are allowed by SHA-256 hash, computed from the exact HTML being served.
-const CSP_BASE = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; " +
+const CSP_BASE = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; " +
   "manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'";
 const cspCache = new Map();
 function cspFor(html) {
@@ -154,7 +155,7 @@ function cspFor(html) {
       hashes.push(`'sha256-${crypto.createHash('sha256').update(m[2]).digest('base64')}'`);
     }
     if (cspCache.size > 50) cspCache.clear();
-    cspCache.set(key, `${CSP_BASE}; script-src 'self'${hashes.length ? ' ' + hashes.join(' ') : ''}`);
+    cspCache.set(key, `${CSP_BASE}; script-src 'self' https://static.cloudflareinsights.com${hashes.length ? ' ' + hashes.join(' ') : ''}`);
   }
   return cspCache.get(key);
 }

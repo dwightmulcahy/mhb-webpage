@@ -4,7 +4,7 @@
   --cream: #f6f0e1;
   --cream-2: #ebe2cc;
   --gold: #f2b21b;
-  --gold-d: #b77f00;
+  --gold-d: #8f6200; /* 4.7:1 on cream — WCAG AA */
   --muted: #6d655a;
   --radius: 14px;
   --display: "Bebas Neue", "Oswald", Impact, sans-serif;
@@ -199,7 +199,7 @@ section { padding: 72px 0; scroll-margin-top: 60px; }
 .ev-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 10px 0; color: #d8cfbb; font-size: .95rem; }
 .event p { color: #d8cfbb; max-width: 60ch; }
 .event .btn.ghost { color: var(--gold); }
-.none { color: #b9b0a0; }
+.events .none { color: #b9b0a0; }
 @media (max-width: 720px) { .event { grid-template-columns: 1fr; } .event .poster img { max-height: 340px; object-position: top; } }
 
 /* merch */
@@ -315,3 +315,5 @@ section { padding: 72px 0; scroll-margin-top: 60px; }
 .tap-sign::before, .tap-sign::after { content: ""; position: absolute; top: -26px; width: 2px; height: 26px; background: #6d655a; }
 .tap-sign::before { left: 18%; transform: rotate(14deg); } .tap-sign::after { right: 18%; transform: rotate(-14deg); }
 @media (prefers-reduced-motion: reduce) { .tap-dlg[open], .tap-emoji { animation: none; } }
+/* WCAG 2.5.8: tap targets ≥ 24px tall */
+address a, footer p a { display: inline-block; min-height: 24px; line-height: 24px; }
