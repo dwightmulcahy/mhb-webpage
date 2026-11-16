@@ -451,7 +451,11 @@ const server = http.createServer((req, res) => {
   let p;
   try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(req, res, 400, 'bad request', 'text/plain'); }
   try {
-    if (p === '/healthz') return send(req, res, 200, 'ok', 'text/plain');
+    if (p === '/healthz') {
+      try { fs.accessSync(DATA_DIR, fs.constants.R_OK | fs.constants.W_OK); fs.accessSync(UPLOAD_DIR, fs.constants.W_OK); }
+      catch (e) { log('ERROR', { message: `healthz: data dir not writable: ${e.message}` }); return send(req, res, 503, 'data dir not writable', 'text/plain', { 'Cache-Control': 'no-store' }); }
+      return send(req, res, 200, 'ok', 'text/plain', { 'Cache-Control': 'no-store' });
+    }
     if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
