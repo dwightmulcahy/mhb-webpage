@@ -21,6 +21,8 @@ Node 22 server with no dependencies, packaged as a Docker image.
 
 To reset to the seed data, delete the matching file and restart the container.
 
+Each save keeps the previous version as `<file>.bak`. If a file ever becomes unreadable, the server sets it aside as `<file>.corrupt-<time>`, restores the `.bak` (or the seed if there's no `.bak`), and logs an `ERROR`, so the site stays up.
+
 ## Settings
 - `ADMIN_PASSWORD`: required for editing.
 - `SECURITY_CONTACT`: contact URI in `/.well-known/security.txt` (`mailto:`, `https:` or `tel:`). Defaults to the brewery phone.

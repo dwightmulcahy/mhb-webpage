@@ -56,9 +56,33 @@ for (const s of Object.values(STORES)) {
   if (!fs.existsSync(s.path)) fs.copyFileSync(path.join(__dirname, 'seed', s.file), s.path);
 }
 const cache = new Map(); // parsed JSON, keyed by store; invalidated on write
+// A store that won't parse (disk full, hand edit, power cut) must not take the site down:
+// set the bad file aside as <file>.corrupt-<time>, then fall back to the last good copy (<file>.bak, kept
+// by writeStore) or the seed, and write that back so the next read is clean.
+function loadStore(name) {
+  const s = STORES[name];
+  const tryRead = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return undefined; } };
+  let data = tryRead(s.path);
+  if (data !== undefined && data !== null && typeof data === 'object') return data;
+  const aside = `${s.path}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+  try { fs.renameSync(s.path, aside); } catch { /* missing file: nothing to keep */ }
+  let from = 'backup';
+  data = tryRead(s.path + '.bak');
+  if (!data || typeof data !== 'object') { from = 'seed'; data = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed', s.file), 'utf8')); }
+  writeAtomic(s.path, JSON.stringify(data, null, 2));
+  log('ERROR', { message: `${s.file} was unreadable; restored from ${from}`, store: name, kept_as: path.basename(aside) });
+  return data;
+}
 function readStore(name) {
-  if (!cache.has(name)) cache.set(name, JSON.parse(fs.readFileSync(STORES[name].path, 'utf8')));
+  if (!cache.has(name)) cache.set(name, loadStore(name));
   return cache.get(name);
+}
+// Save: keep the previous good version as <file>.bak, then replace atomically.
+function writeStore(name, data) {
+  const s = STORES[name];
+  try { fs.copyFileSync(s.path, s.path + '.bak'); } catch { /* first save */ }
+  writeAtomic(s.path, JSON.stringify(data, null, 2));
+  cache.set(name, data);
 }
 
 // ---------- validation ----------
@@ -116,6 +140,7 @@ function validateCollection(schemaName, input) {
   }
   return { updated: new Date().toISOString(), ...settings, [sc.listKey]: out };
 }
+for (const name of Object.keys(STORES)) readStore(name); // surface/repair bad files at startup, not on first visit
 const validate = (name, body) => (name === 'taps' ? validateTaps(body) : validateCollection(STORES[name].schema, body));
 
 // ---------- http helpers ----------
@@ -213,7 +238,12 @@ function readBody(req, limit) {
     req.on('error', reject);
   });
 }
-function writeAtomic(file, data) { const tmp = file + '.tmp'; fs.writeFileSync(tmp, data); fs.renameSync(tmp, file); }
+function writeAtomic(file, data) {
+  const tmp = file + '.tmp';
+  const fd = fs.openSync(tmp, 'w');
+  try { fs.writeSync(fd, data); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  fs.renameSync(tmp, file);
+}
 // Scheme the visitor actually used (Cloudflare sends cf-visitor; other proxies X-Forwarded-Proto)
 function visitorProto(req) {
   const cf = req.headers['cf-visitor'];
@@ -266,8 +296,7 @@ async function handleApi(req, res, route) {
     if (!requireAuth(req, res)) return;
     try {
       const clean = validate(route, JSON.parse((await readBody(req, 5_000_000)).toString('utf8')));
-      writeAtomic(store.path, JSON.stringify(clean, null, 2));
-      cache.set(route, clean);
+      writeStore(route, clean);
       return send(req, res, 200, JSON.stringify(clean));
     } catch (e) {
       return jsonErr(req, res, 400, e.message);
