@@ -1,0 +1,14 @@
+{
+  "name": "mhb-webpage",
+  "private": true,
+  "description": "Monkey Head Brewing website: zero-dependency Node server",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "ADMIN_PASSWORD=dev node --watch server.js",
+    "lint": "node test/lint.js",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\"",
+    "check": "npm run lint && npm test"
+  }
+}
