@@ -6,7 +6,7 @@ Node 22 server with no dependencies, packaged as a Docker image.
 |---|---|
 | `/` and `/es` | Public site, English and Spanish, rendered on the server for search engines. The toggle in the nav switches between them. |
 | `/board` | Full-screen chalkboard taplist for the taproom TV. Refreshes every 30 s; `?lang=es` for Spanish. |
-| `/admin` | Staff editor with **Taplist**, **Events**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap** and **Follow Us** tabs. Password is `ADMIN_PASSWORD`. |
+| `/admin` | Staff editor with **Taplist**, **Events**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap**, **Follow Us** and **Visit & Contact** tabs. Password is `ADMIN_PASSWORD`. |
 | `/sitemap.xml`, `/robots.txt` | Generated automatically; submit the sitemap in Google Search Console. |
 
 ## Data (in `./data`, survives rebuilds)
@@ -16,6 +16,7 @@ Node 22 server with no dependencies, packaged as a Docker image.
 - `merch.json`: merchandise items.
 - `releases.json`: the NEW BEER RELEASE highlight (the first one marked "Show on site").
 - `mobiletap.json`: the Mobile Tap "van in the shop" popup (on/off, which message or random, WhatsApp number and pre-filled text, editable funny messages).
+- `info.json`: opening hours (one row per day; split hours allowed), address, phone, WhatsApp, map link and coordinates. Feeds the Visit section, footer, hero and Google's business details.
 - `social.json`: "Follow us" links in the footer (also sent to Google as the brewery's profiles).
 - `uploads/`: images uploaded from `/admin`. Once a day, uploads no longer used anywhere and older than 7 days (`ORPHAN_GRACE_DAYS`) move to `uploads-trash/`, and files in the trash are deleted after 30 days (`TRASH_KEEP_DAYS`). To bring one back, move it back to `uploads/`.
 

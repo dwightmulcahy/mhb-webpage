@@ -1,0 +1,69 @@
+{
+  "updated": "2026-11-16T00:00:00.000Z",
+  "tel": "+506 8733 7046",
+  "whatsapp": "50687337046",
+  "address": "Ruta 21, 3 km west of Daniel Oduber\nInternational Airport (LIR)\nLiberia, Guanacaste 50103",
+  "address_es": "Ruta 21, 3 km al oeste del Aeropuerto\nInternacional Daniel Oduber (LIR)\nLiberia, Guanacaste 50103",
+  "footAddress": "Ruta 21, 3 km west of LIR airport\nLiberia, Guanacaste 50103",
+  "footAddress_es": "Ruta 21, 3 km al oeste del aeropuerto LIR\nLiberia, Guanacaste 50103",
+  "hoursNote": "",
+  "hoursNote_es": "",
+  "map": "https://www.google.com/maps/search/?api=1&query=Monkey+Head+Brewing&query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI",
+  "street": "Ruta 21, 3 km west of Daniel Oduber International Airport",
+  "locality": "Liberia",
+  "region": "Guanacaste",
+  "postal": "50103",
+  "lat": "10.580565",
+  "lng": "-85.5746102",
+  "hours": [
+    {
+      "id": "mon",
+      "day": "Monday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "tue",
+      "day": "Tuesday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "wed",
+      "day": "Wednesday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "thu",
+      "day": "Thursday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "fri",
+      "day": "Friday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "sat",
+      "day": "Saturday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    },
+    {
+      "id": "sun",
+      "day": "Sunday",
+      "opens": "12:00",
+      "closes": "17:00",
+      "closed": false
+    }
+  ]
+}

@@ -47,7 +47,7 @@
       <div class="facts">
         <div>2015<small data-i18n="fact.est"></small></div>
         <div>7 BBL<small data-i18n="fact.bbl"></small></div>
-        <div>12–5<small data-i18n="fact.open"></small></div>
+        <div id="factOpen"><!--@factOpen--></div>
       </div>
     </div>
     <div class="logo-swap" id="logoSwap">
@@ -148,11 +148,7 @@
   <div class="wrap">
     <div class="eyebrow" data-i18n="visit.eyebrow"></div>
     <h2 data-i18n="visit.title"></h2>
-    <div class="cards">
-      <div class="card"><h3 data-i18n="visit.hours"></h3><p data-i18n="visit.hoursP"></p></div>
-      <address class="card"><h3 data-i18n="visit.loc"></h3><p><span data-i18n="visit.locP"></span><br><a href="https://www.google.com/maps/search/?api=1&amp;query=Monkey+Head+Brewing&amp;query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI" target="_blank" rel="noopener" data-i18n="visit.maps"></a></p></address>
-      <address class="card"><h3 data-i18n="visit.contact"></h3><p><a href="tel:+50687337046">+506 8733 7046</a><br><a href="https://api.whatsapp.com/send?phone=50687337046" rel="noopener" data-i18n="visit.wa"></a></p></address>
-    </div>
+    <div class="cards" id="visitCards"><!--@visit--></div>
   </div>
 </section>
 </main>
@@ -179,11 +175,7 @@
         <li><a href="#visit" data-i18n="nav.visit"></a></li>
       </ul>
     </nav>
-    <div class="foot-col">
-      <h3 data-i18n="foot.visit"></h3>
-      <p><span data-i18n="foot.hours"></span><br><span data-i18n="foot.addr"></span></p>
-      <p><a href="https://www.google.com/maps/search/?api=1&amp;query=Monkey+Head+Brewing&amp;query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI" target="_blank" rel="noopener" data-i18n="foot.directions"></a><br><a href="tel:+50687337046">+506 8733 7046</a></p>
-    </div>
+    <div class="foot-col" id="footVisit"><!--@footVisit--></div>
     <div class="foot-col">
       <h3 data-i18n="foot.follow"></h3>
       <div class="socials" id="socialList"><!--@social--></div>
