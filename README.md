@@ -25,6 +25,12 @@ To reset to the seed data, delete the matching file and restart the container.
 - `ADMIN_PASSWORD`: required for editing.
 - `SITE_URL`: your public address, e.g. `https://monkeyheadbrewing.com`. Used for canonical links, the sitemap and social previews. If unset, the request's host is used.
 
+## Tests
+```sh
+npm run check      # lint (syntax, CSP-safe HTML, valid JSON) + tests; no npm install needed
+```
+CI runs the same on every push and PR, then builds the Docker image and smoke-tests it.
+
 ## Deploy on QNAP
 ```sh
 cp .env.example .env   # set ADMIN_PASSWORD

@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm run lint
+      - run: npm test
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t mhb-web:ci .
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          docker run -d --name mhb -e ADMIN_PASSWORD=ci -p 8080:8080 mhb-web:ci
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done
+          # save then grep: `curl | grep -q` fails under pipefail when grep exits early
+          curl -fsS -o /tmp/en.html http://127.0.0.1:8080/ && grep -q 'application/ld+json' /tmp/en.html
+          curl -fsS -o /tmp/es.html http://127.0.0.1:8080/es && grep -q '<html lang="es">' /tmp/es.html
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer ci' http://127.0.0.1:8080/api/login)" = 200
+          docker stop -t 10 mhb
+      - if: failure()
+        run: docker logs mhb || true
