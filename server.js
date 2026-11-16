@@ -484,6 +484,7 @@ function sitemap(req) {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url><loc>${base}/</loc><lastmod>${last.slice(0, 10)}</lastmod><changefreq>daily</changefreq><priority>1.0</priority>${alt}</url>
   <url><loc>${base}/es</loc><lastmod>${last.slice(0, 10)}</lastmod><changefreq>daily</changefreq><priority>0.9</priority>${alt}</url>
+  <url><loc>${base}/privacy</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
 </urlset>`;
 }
 
@@ -504,6 +505,7 @@ const NOT_FOUND = versionAssets(fs.readFileSync(path.join(PUBLIC_DIR, '404.html'
 const notFound = (req, res) => (/text\/html/.test(req.headers.accept || '')
   ? send(req, res, 404, NOT_FOUND, MIME['.html'], { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' })
   : send(req, res, 404, 'not found', 'text/plain; charset=utf-8', { 'Cache-Control': 'no-store' }));
+const PUBLIC_PAGES = { '/privacy': '/privacy.html' };
 function serveFile(req, res, root, rel, extra = {}) {
   const file = path.normalize(path.join(root, rel));
   if (!file.startsWith(root + path.sep)) return send(req, res, 403, 'forbidden', 'text/plain');
@@ -586,6 +588,8 @@ const server = http.createServer((req, res) => {
     if (p === '/manifest.webmanifest') return send(req, res, 200, MANIFEST, MIME['.webmanifest'], { 'Cache-Control': 'public, max-age=86400' });
     if (p.startsWith('/uploads/')) return serveFile(req, res, UPLOAD_DIR, p.slice('/uploads/'.length));
     if (p === '/404.html') return notFound(req, res);
+    if (PUBLIC_PAGES[p]) return serveFile(req, res, PUBLIC_DIR, PUBLIC_PAGES[p]);
+    if (p === '/es/privacy') { res.writeHead(301, { Location: '/privacy#es', ...BASE_HEADERS }); return res.end(); }
     if (PAGES[p]) return serveFile(req, res, PUBLIC_DIR, PAGES[p], { 'X-Robots-Tag': 'noindex, nofollow' });
     serveFile(req, res, PUBLIC_DIR, p);
   } catch (e) {
