@@ -249,13 +249,31 @@ $('#collRows').addEventListener('click', (e) => {
 });
 $('#collRows').addEventListener('change', async (e) => {
   if (!e.target.matches('[data-up]') || !e.target.files[0]) return;
-  const f = e.target.files[0], i = +e.target.closest('.ed').dataset.i, sc = MHB_SCHEMAS[tab];
+  const i = +e.target.closest('.ed').dataset.i, sc = MHB_SCHEMAS[tab];
+  $('#msg').textContent = 'Optimizing image…';
+  const f = await shrinkImage(e.target.files[0]);
   $('#msg').textContent = 'Uploading…';
   const r = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': f.type, Authorization: 'Bearer ' + token }, body: f });
   const data = await r.json();
   if (!r.ok) return ($('#msg').textContent = 'Upload failed: ' + data.error);
   COLL[tab].doc[sc.listKey][i].image = data.path; renderColl();
 });
+// Phone photos are often 4000px / 5 MB+. Scale to at most 1600px and re-encode as WebP (keeps transparency)
+// in the browser before uploading; small images that are already compact are sent as they are.
+const MAX_SIDE = 1600, KEEP_UNDER = 400 * 1024;
+async function shrinkImage(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size <= KEEP_UNDER) { bmp.close(); return file; }
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); bmp.close();
+    let blob = await new Promise((res) => c.toBlob(res, 'image/webp', 0.85));
+    if (!blob || blob.type !== 'image/webp') blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.85)); // old Safari
+    return blob && blob.size < file.size ? blob : file;
+  } catch { return file; }  // unreadable here: let the server decide
+}
 $('#addColl').onclick = () => {
   const sc = MHB_SCHEMAS[tab], row = {};
   sc.fields.forEach((f) => { row[f.k] = f.type === 'bool' ? !!f.def : (f.def || ''); });

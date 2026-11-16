@@ -431,7 +431,7 @@ function fileHash(file) {
   }
   return etags.get(file);
 }
-const versionAssets = (html) => html.replace(/(\b(?:src|href)=")(\/[\w./-]+\.(?:css|js|png|jpe?g|ico|webp|svg))(")/g, (m, a, p, z) => {
+const versionAssets = (html) => html.replace(/(\b(?:src|srcset|href)=")(\/[\w./-]+\.(?:css|js|png|jpe?g|ico|webp|svg))(")/g, (m, a, p, z) => {
   const v = fileHash(path.join(PUBLIC_DIR, p));
   return v ? `${a}${p}?v=${v}${z}` : m;
 });

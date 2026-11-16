@@ -179,7 +179,7 @@ section { padding: 72px 0; scroll-margin-top: 60px; }
 @media (max-width: 820px) {
   .trio { grid-template-columns: 1fr; gap: 12px; }
   .trio article { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: start; padding: 16px; }
-  .trio article > img, .trio .glass, .trio .tile { grid-row: span 2; width: 96px; height: 96px; aspect-ratio: 1; margin: 0; }
+  .trio article > img, .trio article > picture > img, .trio .glass, .trio .tile { grid-row: span 2; width: 96px; height: 96px; aspect-ratio: 1; margin: 0; }
   .trio h3 { font-size: 1.6rem; }
   .trio p { font-size: .92rem; }
 }
@@ -317,3 +317,6 @@ section { padding: 72px 0; scroll-margin-top: 60px; }
 @media (prefers-reduced-motion: reduce) { .tap-dlg[open], .tap-emoji { animation: none; } }
 /* WCAG 2.5.8: tap targets ≥ 24px tall */
 address a, footer p a { display: inline-block; min-height: 24px; line-height: 24px; }
+/* <picture> only picks the WebP/JPEG source; layout and styles stay on the <img> */
+picture { display: contents; }
+picture > source { display: none; }
