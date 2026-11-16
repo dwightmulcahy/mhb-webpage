@@ -17,7 +17,7 @@ Node 22 server with no dependencies, packaged as a Docker image.
 - `releases.json`: the NEW BEER RELEASE highlight (the first one marked "Show on site").
 - `mobiletap.json`: the Mobile Tap "van in the shop" popup (on/off, which message or random, WhatsApp number and pre-filled text, editable funny messages).
 - `social.json`: "Follow us" links in the footer (also sent to Google as the brewery's profiles).
-- `uploads/`: event posters uploaded from `/admin`.
+- `uploads/`: images uploaded from `/admin`. Once a day, uploads no longer used anywhere and older than 7 days (`ORPHAN_GRACE_DAYS`) move to `uploads-trash/`, and files in the trash are deleted after 30 days (`TRASH_KEEP_DAYS`). To bring one back, move it back to `uploads/`.
 
 To reset to the seed data, delete the matching file and restart the container.
 
