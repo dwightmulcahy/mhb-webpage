@@ -51,6 +51,7 @@ const STORES = {
   social: { file: 'social.json', schema: 'social' },
   releases: { file: 'releases.json', schema: 'releases' },
   mobiletap: { file: 'mobiletap.json', schema: 'mobiletap' },
+  info: { file: 'info.json', schema: 'info' },
 };
 for (const s of Object.values(STORES)) {
   s.path = path.join(DATA_DIR, s.file);
@@ -139,6 +140,7 @@ const FIELD_RULES = {
   url: [/^(https?:\/\/\S+)?$/, 'must start with http:// or https://'],
   link: [/^((https?:\/\/|mailto:|tel:)\S+)?$/, 'must start with https://, mailto: or tel:'],
   image: [/^(\/(img|uploads)\/[\w./-]+)?$/, 'must be an uploaded image'],
+  coord: [/^(-?\d{1,3}(\.\d+)?)?$/, 'must be a number like 10.58 or -85.57'],
 };
 function validateCollection(schemaName, input) {
   const sc = SCHEMAS[schemaName];
@@ -161,6 +163,11 @@ function validateCollection(schemaName, input) {
     return o;
   });
   if (schemaName === 'events') out.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+  if (schemaName === 'info') {
+    const order = sc.fields.find((f) => f.k === 'day').options;
+    out.sort((a, b) => order.indexOf(a.day) - order.indexOf(b.day) || a.opens.localeCompare(b.opens));
+    out.forEach((r, i) => { if (!r.closed && (!r.opens || !r.closes)) throw new Error(`Hours ${i + 1} (${r.day}): set Opens and Closes, or tick Closed`); });
+  }
   // Top-level settings for collections that have them (e.g. mobiletap)
   const settings = {};
   for (const f of sc.settings || []) {
@@ -168,7 +175,9 @@ function validateCollection(schemaName, input) {
     if (f.type === 'bool') { settings[f.k] = v === undefined ? !!f.def : !!v; continue; }
     let s = typeof v === 'string' ? v.trim().slice(0, f.type === 'textarea' ? 1000 : 300) : '';
     if (f.type === 'pick' && s !== 'random' && !out.some((r) => r.id === s)) s = 'random';
-    if (f.k === 'phone') { s = s.replace(/\D/g, ''); if (!/^\d{8,15}$/.test(s)) throw new Error(`${f.label}: 8–15 digits including country code`); }
+    if (f.k === 'phone' || f.type === 'digits') { s = s.replace(/\D/g, ''); if (!/^\d{8,15}$/.test(s)) throw new Error(`${f.label}: 8–15 digits including country code`); }
+    const rule = FIELD_RULES[f.type];
+    if (rule && s && !rule[0].test(s)) throw new Error(`${f.label} ${rule[1]}`);
     settings[f.k] = s || f.def || '';
   }
   return { updated: new Date().toISOString(), ...settings, [sc.listKey]: out };
@@ -428,12 +437,11 @@ const versionAssets = (html) => html.replace(/(\b(?:src|href)=")(\/[\w./-]+\.(?:
 });
 const TEMPLATE = versionAssets(fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8'));
 const escAttr = MHBSite.esc;
-const GEO = { lat: 10.580565, lng: -85.5746102 };  // Monkey Head Brewing, Ruta 21, Liberia 50103
-const MAP_URL = 'https://www.google.com/maps/search/?api=1&query=Monkey+Head+Brewing&query_place_id=ChIJ241Qvc3Vn48Rgrd8eYe10KI';
 const jsonForScript = (o) => JSON.stringify(o).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, '');
 
 function structuredData(lang, url, base, data) {
   const t = (k) => I18N.tFor(lang, k);
+  const info = data.info || {};
   const org = `${base}/#brewery`;
   const menuSections = []; let cur = null;
   for (const it of data.taps.items || []) {
@@ -449,11 +457,12 @@ function structuredData(lang, url, base, data) {
     {
       '@type': 'Brewery', '@id': org, name: 'Monkey Head Brewing Co.', alternateName: 'Monkey Head Brewing',
       url: base + '/', logo: base + '/img/icon-512.png', image: [base + '/img/og-card.jpg', base + '/img/mobile-tap.jpg'],
-      description: t('page.desc'), telephone: '+506 8733 7046', foundingDate: '2015', servesCuisine: 'Craft beer',
-      address: { '@type': 'PostalAddress', streetAddress: 'Ruta 21, 3 km west of Daniel Oduber International Airport', addressLocality: 'Liberia', addressRegion: 'Guanacaste', postalCode: '50103', addressCountry: 'CR' },
-      geo: { '@type': 'GeoCoordinates', latitude: GEO.lat, longitude: GEO.lng },
-      hasMap: MAP_URL,
-      openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '12:00', closes: '17:00' }],
+      description: t('page.desc'), foundingDate: '2015', servesCuisine: 'Craft beer',
+      ...(info.tel ? { telephone: info.tel } : {}),
+      address: { '@type': 'PostalAddress', streetAddress: info.street || '', addressLocality: info.locality || '', addressRegion: info.region || '', postalCode: info.postal || '', addressCountry: 'CR' },
+      ...(info.lat && info.lng ? { geo: { '@type': 'GeoCoordinates', latitude: Number(info.lat), longitude: Number(info.lng) } } : {}),
+      ...(info.map ? { hasMap: info.map } : {}),
+      openingHoursSpecification: MHBSite.hoursGroups(info).filter((g) => !g.closed).map((g) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: g.days, opens: g.opens, closes: g.closes })),
       hasMenu: { '@type': 'Menu', name: t('taps.title'), inLanguage: lang, hasMenuSection: menuSections },
       acceptsReservations: false,
       sameAs: ((data.social && data.social.links) || []).map((l) => l.url).filter((u) => /^https:\/\/(www\.)?(instagram|facebook|untappd|tiktok|youtube|x|twitter|tripadvisor)\./.test(u)),
@@ -478,7 +487,7 @@ function renderHome(req, lang) {
   const t = (k) => I18N.tFor(lang, k);
   const base = baseUrl(req);
   const url = base + (lang === 'es' ? '/es' : '/');
-  const data = { taps: readStore('taps'), events: readStore('events'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases'), mobiletap: readStore('mobiletap') };
+  const data = { taps: readStore('taps'), events: readStore('events'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases'), mobiletap: readStore('mobiletap'), info: readStore('info') };
   const beers = MHB.beers(data.taps).length;
   const banner = MHBSite.renderBanner(data.events, lang, t);
   const head = [
@@ -499,7 +508,8 @@ function renderHome(req, lang) {
     `<meta property="og:locale" content="${lang === 'es' ? 'es_CR' : 'en_US'}"><meta property="og:locale:alternate" content="${lang === 'es' ? 'en_US' : 'es_CR'}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta name="twitter:image" content="${base}/img/og-card.jpg?v=${fileHash(path.join(PUBLIC_DIR, 'img/og-card.jpg'))}">`,
-    `<meta name="geo.region" content="CR-G"><meta name="geo.placename" content="Liberia, Guanacaste"><meta name="geo.position" content="${GEO.lat};${GEO.lng}"><meta name="ICBM" content="${GEO.lat}, ${GEO.lng}">`,
+    `<meta name="geo.region" content="CR-G"><meta name="geo.placename" content="${escAttr([data.info.locality, data.info.region].filter(Boolean).join(', '))}">` +
+      (data.info.lat && data.info.lng ? `<meta name="geo.position" content="${escAttr(data.info.lat)};${escAttr(data.info.lng)}"><meta name="ICBM" content="${escAttr(data.info.lat)}, ${escAttr(data.info.lng)}">` : ''),
     `<script type="application/ld+json">${jsonForScript(structuredData(lang, url, base, data))}</script>`,
   ].join('\n');
 
@@ -517,6 +527,9 @@ function renderHome(req, lang) {
     .replace('id="bookTap" href="https://api.whatsapp.com/send?phone=50687337046"', `id="bookTap" href="${escAttr(MHBSite.waLink(data.mobiletap, lang))}"`)
     .replace('<!--@release-->', MHBSite.renderRelease(data.releases, lang, t))
     .replace('<section class="release" id="new"', MHBSite.currentRelease(data.releases) ? '<section class="release" id="new"' : '<section class="release" id="new" hidden')
+    .replace('<!--@factOpen-->', MHBSite.renderFactOpen(data.info, lang, t))
+    .replace('<!--@visit-->', MHBSite.renderVisit(data.info, lang, t))
+    .replace('<!--@footVisit-->', MHBSite.renderFootVisit(data.info, lang, t))
     .replace('<!--@year-->', String(new Date().getFullYear()))
     .replace('<!--@data-->', jsonForScript(data))
     .replace('id="langBtn" href="/es" hreflang="es"', lang === 'es' ? 'id="langBtn" href="/" hreflang="en"' : 'id="langBtn" href="/es" hreflang="es"');
@@ -528,7 +541,7 @@ function renderHome(req, lang) {
 
 function sitemap(req) {
   const base = baseUrl(req);
-  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated, readStore('mobiletap').updated]
+  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated, readStore('mobiletap').updated, readStore('info').updated]
     .filter(Boolean).sort().pop() || new Date().toISOString();
   const alt = `<xhtml:link rel="alternate" hreflang="en" href="${base}/"/><xhtml:link rel="alternate" hreflang="es" href="${base}/es"/>`;
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -621,7 +634,7 @@ const server = http.createServer((req, res) => {
     if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
-    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|login|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
+    const api = p.match(/^\/api\/(taps|events|merch|places|social|releases|mobiletap|info|login|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, 'method not allowed', 'text/plain');

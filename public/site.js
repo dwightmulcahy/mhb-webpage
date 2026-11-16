@@ -155,6 +155,58 @@
       </div>`;
   }
 
+  // ---------- opening hours, address, contact (info.json) ----------
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayName = (i, lang) => new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(loc(lang), { weekday: 'short', timeZone: 'UTC' }); // 2024-01-01 = Monday
+  // Consecutive days with identical hours -> one group: { days: [...names], from, to, opens, closes, closed, split }
+  function hoursGroups(info) {
+    const rows = (info && info.hours) || [];
+    const key = DAYS.map((d) => {
+      const r = rows.filter((x) => x.day === d && !x.closed && x.opens && x.closes).sort((a, b) => a.opens.localeCompare(b.opens));
+      return r.length ? r.map((x) => `${x.opens}-${x.closes}`).join(',') : 'closed';
+    });
+    const groups = [];
+    key.forEach((k, i) => {
+      const g = groups[groups.length - 1];
+      if (g && g.key === k) { g.to = i; g.days.push(DAYS[i]); return; }
+      const spans = k === 'closed' ? [] : k.split(',').map((x) => x.split('-'));
+      groups.push({ key: k, from: i, to: i, days: [DAYS[i]], closed: k === 'closed', spans, opens: spans[0] && spans[0][0], closes: spans[0] && spans[spans.length - 1][1] });
+    });
+    // schema.org needs one spec per span; split hours become extra groups there
+    return groups.flatMap((g) => (g.spans.length > 1 ? g.spans.map(([o, c]) => ({ ...g, opens: o, closes: c })) : [g]));
+  }
+  function hoursLines(info, lang, t) {
+    const seen = new Set();
+    const groups = hoursGroups(info).filter((g) => (seen.has(g.key + g.from) ? false : seen.add(g.key + g.from)));
+    const span = (g) => g.spans.map(([o, c]) => `${fmtTime(o, lang)} – ${fmtTime(c, lang)}`).join(', ');
+    if (groups.length === 1 && !groups[0].closed) return [`${t('hours.daily')} · ${span(groups[0])}`];
+    return groups.map((g) => `${g.from === g.to ? dayName(g.from, lang) : `${dayName(g.from, lang)}–${dayName(g.to, lang)}`} · ${g.closed ? t('hours.closed') : span(g)}`);
+  }
+  const short = (hm) => { const [h, m] = hm.split(':').map(Number); return `${h % 12 || 12}${m ? ':' + String(m).padStart(2, '0') : ''}`; };
+  function renderFactOpen(info, lang, t) {
+    const open = hoursGroups(info).filter((g) => !g.closed);
+    if (!open.length) return `—<small>${t('hours.closed')}</small>`;
+    const daily = open.length === 1 && open[0].days.length === 7;
+    const g = open.slice().sort((a, b) => b.days.length - a.days.length)[0];
+    return `${short(g.opens)}–${short(g.closes)}<small>${daily ? t('fact.open') : t('visit.hours')}</small>`;
+  }
+  const lines = (s) => esc(s).replace(/\r?\n/g, '<br>');
+  const telHref = (tel) => 'tel:+' + String(tel || '').replace(/\D/g, '');
+  function renderVisit(info, lang, t) {
+    info = info || {};
+    const note = pick(info, 'hoursNote', lang);
+    const addr = pick(info, 'address', lang);
+    return `<div class="card"><h3>${t('visit.hours')}</h3><p>${hoursLines(info, lang, t).map(esc).join('<br>')}${note ? `<br><small>${esc(note)}</small>` : ''}</p></div>
+      <address class="card"><h3>${t('visit.loc')}</h3><p>${lines(addr)}${info.map ? `<br><a href="${esc(info.map)}" target="_blank" rel="noopener">${t('visit.maps')}</a>` : ''}</p></address>
+      <address class="card"><h3>${t('visit.contact')}</h3><p>${info.tel ? `<a href="${esc(telHref(info.tel))}">${esc(info.tel)}</a>` : ''}${info.whatsapp ? `<br><a href="${esc(waUrl(info.whatsapp, ''))}" rel="noopener">${t('visit.wa')}</a>` : ''}</p></address>`;
+  }
+  function renderFootVisit(info, lang, t) {
+    info = info || {};
+    return `<h3>${t('foot.visit')}</h3>
+      <p>${hoursLines(info, lang, t).map(esc).join('<br>')}<br>${lines(pick(info, 'footAddress', lang) || pick(info, 'address', lang))}</p>
+      <p>${info.map ? `<a href="${esc(info.map)}" target="_blank" rel="noopener">${t('foot.directions')}</a><br>` : ''}${info.tel ? `<a href="${esc(telHref(info.tel))}">${esc(info.tel)}</a>` : ''}</p>`;
+  }
+
   // Simple line icons (24x24, stroke = currentColor)
   const SOCIAL_ICONS = {
     instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/>',
@@ -182,5 +234,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
 })(typeof window !== 'undefined' ? window : globalThis);

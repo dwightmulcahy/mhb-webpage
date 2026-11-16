@@ -30,6 +30,12 @@
   const drawMerch = () => { if (data.merch) $('#merchList').innerHTML = S.renderMerch(data.merch, I18N.lang, t); };
   const drawPlaces = () => { if (data.places) $('#placeList').innerHTML = S.renderPlaces(data.places, I18N.lang, t); };
   const drawSocial = () => { if (data.social) $('#socialList').innerHTML = S.renderSocial(data.social); };
+  const drawInfo = () => {
+    if (!data.info) return;
+    $('#factOpen').innerHTML = S.renderFactOpen(data.info, I18N.lang, t);
+    $('#visitCards').innerHTML = S.renderVisit(data.info, I18N.lang, t);
+    $('#footVisit').innerHTML = S.renderFootVisit(data.info, I18N.lang, t);
+  };
   const drawRelease = () => {
     if (!data.releases) return;
     $('#releaseBox').innerHTML = S.renderRelease(data.releases, I18N.lang, t);
@@ -108,8 +114,9 @@
   MHB.watch((d) => { data.social = d; drawSocial(); }, null, 600000, '/api/social', data.social);
   MHB.watch((d) => { data.releases = d; drawRelease(); }, null, 300000, '/api/releases', data.releases);
   MHB.watch((d) => { data.mobiletap = d; syncBook(); }, null, 600000, '/api/mobiletap', data.mobiletap);
+  MHB.watch((d) => { data.info = d; drawInfo(); }, null, 600000, '/api/info', data.info);
 
-  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); syncBook(); });
+  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); drawInfo(); syncBook(); });
   $('#yr').textContent = new Date().getFullYear();
   if (I18N.changed) I18N.apply(); else { syncLangBtn(); drawBanner(); syncBook(); }
 })();

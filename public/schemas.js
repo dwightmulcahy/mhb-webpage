@@ -1,5 +1,5 @@
 // Editable collections (shared by the server validator and the /admin editor).
-// Field types: text, textarea, date, time, url, image, bool, select
+// Field types: text, textarea, date, time, url, link, image, bool, select, digits, coord
 (function (g) {
   const SCHEMAS = {
     events: {
@@ -114,6 +114,36 @@
         { k: 'active', label: 'Include in random', type: 'bool', def: true },
       ],
       blank: () => ({ title: 'My custom message', emoji: '🍺', style: 'plain', active: true }),
+    },
+    info: {
+      label: 'Visit & Contact',
+      listKey: 'hours',
+      titleField: 'day',
+      help: 'Opening hours, address, phone and map link. Used in the Visit section, the footer, the hero and the details Google shows. Add one row per day; a missing day or “Closed” shows as closed. Two rows for the same day = split hours.',
+      settings: [
+        { k: 'tel', label: 'Phone (as shown)', type: 'text', ph: '+506 8733 7046' },
+        { k: 'whatsapp', label: 'WhatsApp number (digits, with country code)', type: 'digits', def: '50687337046', ph: '50687337046' },
+        { k: 'address', label: 'Address (EN, one line per row)', type: 'textarea', w: 2 },
+        { k: 'address_es', label: 'Dirección (ES)', type: 'textarea', w: 2 },
+        { k: 'footAddress', label: 'Short address for footer (EN, optional)', type: 'textarea', w: 2 },
+        { k: 'footAddress_es', label: 'Dirección corta pie de página (ES)', type: 'textarea', w: 2 },
+        { k: 'hoursNote', label: 'Hours note (optional)', type: 'text', w: 2, ph: 'Closed Dec 25 & Jan 1' },
+        { k: 'hoursNote_es', label: 'Nota de horario (ES)', type: 'text', w: 2 },
+        { k: 'map', label: 'Google Maps link', type: 'url', w: 4 },
+        { k: 'street', label: 'Street (for Google)', type: 'text', w: 2 },
+        { k: 'locality', label: 'Town', type: 'text', def: 'Liberia' },
+        { k: 'region', label: 'Province', type: 'text', def: 'Guanacaste' },
+        { k: 'postal', label: 'Postal code', type: 'text' },
+        { k: 'lat', label: 'Latitude', type: 'coord', ph: '10.580565' },
+        { k: 'lng', label: 'Longitude', type: 'coord', ph: '-85.5746102' },
+      ],
+      fields: [
+        { k: 'day', label: 'Day', type: 'select', options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], def: 'Monday' },
+        { k: 'opens', label: 'Opens', type: 'time' },
+        { k: 'closes', label: 'Closes', type: 'time' },
+        { k: 'closed', label: 'Closed this day', type: 'bool' },
+      ],
+      blank: () => ({ day: 'Monday', opens: '12:00', closes: '17:00', closed: false }),
     },
     social: {
       label: 'Follow Us',

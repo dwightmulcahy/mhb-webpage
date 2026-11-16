@@ -81,7 +81,7 @@
 
 <main id="app" hidden>
   <div class="wrap">
-    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button></div>
+    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button><button data-tab="info">Visit &amp; Contact</button></div>
     <div id="tabTaps">
     <p style="color:var(--muted);margin-top:0">Uses the <b>TapListBuilder</b> JSON format. Import a file exported from TapListBuilder, or edit here and Export to take it back. Items in the list = on tap; <b>Off tap</b> moves a beer to Saved beverages. Changes go live on <b>Save &amp; publish</b>.</p>
     <div class="toolbar">
@@ -180,14 +180,15 @@ function field(f, v) {
   if (f.type === 'textarea') return `<div class="${w}"><label>${esc(f.label)}</label><textarea data-k="${f.k}">${esc(v)}</textarea></div>`;
   if (f.type === 'select') return `<div class="${w}"><label>${esc(f.label)}</label><select data-k="${f.k}">${f.options.map((o) => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
   const type = { date: 'date', time: 'time', url: 'url' }[f.type] || 'text';
+  const mode = { digits: 'numeric', coord: 'decimal' }[f.type];
   const ph = f.ph || (f.type === 'url' ? 'https://' : '');
-  return `<div class="${w}"><label>${esc(f.label)}</label><input data-k="${f.k}" type="${type}" value="${esc(v ?? '')}" ${ph ? `placeholder="${esc(ph)}"` : ''}></div>`;
+  return `<div class="${w}"><label>${esc(f.label)}</label><input data-k="${f.k}" type="${type}" value="${esc(v ?? '')}" ${ph ? `placeholder="${esc(ph)}"` : ''}${mode ? ` inputmode="${mode}"` : ''}></div>`;
 }
 function renderColl() {
   const sc = MHB_SCHEMAS[tab], c = COLL[tab]; if (!c) return;
   const list = c.doc[sc.listKey];
   $('#collHelp').textContent = sc.help;
-  $('#addColl').textContent = `+ Add ${{ events: 'event', places: 'place', merch: 'merch item', social: 'link', releases: 'release', mobiletap: 'custom message' }[tab]}`;
+  $('#addColl').textContent = `+ Add ${{ events: 'event', places: 'place', merch: 'merch item', social: 'link', releases: 'release', mobiletap: 'custom message', info: 'hours row' }[tab]}`;
   const imgField = sc.fields.find((f) => f.type === 'image');
   $('#collSettings').innerHTML = sc.settings ? `<div class="ed settings" style="grid-template-columns:1fr"><div class="f">
     <div class="w4 kind">SETTINGS</div>
@@ -198,7 +199,7 @@ function renderColl() {
       }
       return field(f, v).replace('data-k=', 'data-s=');
     }).join('')}
-    <div class="w4"><button type="button" class="mv" data-preview="${esc(c.doc.pick || 'random')}">👁 Preview popup</button> <span style="color:var(--muted);font-size:.85rem">Preview shows the last <b>saved</b> version — Save &amp; publish first.</span></div>
+    ${tab === 'mobiletap' ? `<div class="w4"><button type="button" class="mv" data-preview="${esc(c.doc.pick || 'random')}">👁 Preview popup</button> <span style="color:var(--muted);font-size:.85rem">Preview shows the last <b>saved</b> version — Save &amp; publish first.</span></div>` : ''}
   </div></div>` : '';
   $('#collRows').innerHTML = list.map((row, i) => {
     const past = tab === 'events' && row.date && row.date < todayCR;
