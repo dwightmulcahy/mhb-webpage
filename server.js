@@ -415,11 +415,16 @@ const MANIFEST = JSON.stringify({
 
 // ---------- static ----------
 const PAGES = { '/admin': '/admin.html', '/board': '/board.html' };
+const NOT_FOUND = versionAssets(fs.readFileSync(path.join(PUBLIC_DIR, '404.html'), 'utf8'));
+// Browsers asking for a page get the branded 404; images, scripts and API clients get plain text.
+const notFound = (req, res) => (/text\/html/.test(req.headers.accept || '')
+  ? send(req, res, 404, NOT_FOUND, MIME['.html'], { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' })
+  : send(req, res, 404, 'not found', 'text/plain; charset=utf-8', { 'Cache-Control': 'no-store' }));
 function serveFile(req, res, root, rel, extra = {}) {
   const file = path.normalize(path.join(root, rel));
   if (!file.startsWith(root + path.sep)) return send(req, res, 403, 'forbidden', 'text/plain');
   fs.readFile(file, (err, data) => {
-    if (err) return send(req, res, 404, 'not found', 'text/plain; charset=utf-8', { 'Cache-Control': 'no-store' });
+    if (err) return notFound(req, res);
     const ext = path.extname(file).toLowerCase();
     if (ext === '.html') data = Buffer.from(versionAssets(data.toString('utf8')));
     const versioned = /[?&]v=\w+/.test(req.url) || root === UPLOAD_DIR || ext === '.woff2';
@@ -476,6 +481,7 @@ const server = http.createServer((req, res) => {
     if (p === '/sitemap.xml') return send(req, res, 200, sitemap(req), MIME['.xml'], { 'Cache-Control': 'public, max-age=3600' });
     if (p === '/manifest.webmanifest') return send(req, res, 200, MANIFEST, MIME['.webmanifest'], { 'Cache-Control': 'public, max-age=86400' });
     if (p.startsWith('/uploads/')) return serveFile(req, res, UPLOAD_DIR, p.slice('/uploads/'.length));
+    if (p === '/404.html') return notFound(req, res);
     if (PAGES[p]) return serveFile(req, res, PUBLIC_DIR, PAGES[p], { 'X-Robots-Tag': 'noindex, nofollow' });
     serveFile(req, res, PUBLIC_DIR, p);
   } catch (e) {
