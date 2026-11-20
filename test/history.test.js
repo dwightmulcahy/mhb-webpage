@@ -43,6 +43,6 @@ test('backup bundles every store', async () => {
   assert.match(r.headers.get('content-disposition'), /attachment; filename="mhb-backup-\d{4}-\d{2}-\d{2}\.json"/);
   const b = await r.json();
   assert.equal(b.format, 'mhb-backup');
-  assert.deepEqual(Object.keys(b.stores).sort(), ['announcements', 'events', 'info', 'merch', 'mobiletap', 'places', 'releases', 'social', 'taps']);
+  assert.deepEqual(Object.keys(b.stores).sort(), ['announcements', 'events', 'info', 'merch', 'mobiletap', 'more', 'places', 'releases', 'social', 'taps']);
   assert.equal(b.stores.events.events[0].title, 'V7');
 });

@@ -12,13 +12,13 @@ const put = (route, body, headers = s.auth()) =>
   s.req('/api/' + route, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) });
 
 test('stores are seeded on first start', () => {
-  for (const f of ['taplist.json', 'events.json', 'announcements.json', 'merch.json', 'places.json', 'social.json', 'releases.json', 'mobiletap.json']) {
+  for (const f of ['taplist.json', 'events.json', 'announcements.json', 'more.json', 'merch.json', 'places.json', 'social.json', 'releases.json', 'mobiletap.json']) {
     assert.ok(fs.existsSync(path.join(s.dataDir, f)), f);
   }
 });
 
 test('GET stores is public and not cached', async () => {
-  for (const r of ['taps', 'events', 'announcements', 'merch', 'places', 'social', 'releases', 'mobiletap', 'schemas']) {
+  for (const r of ['taps', 'events', 'announcements', 'more', 'merch', 'places', 'social', 'releases', 'mobiletap', 'schemas']) {
     const res = await s.req('/api/' + r);
     assert.equal(res.status, 200, r);
     assert.equal(res.headers.get('cache-control'), 'no-store');

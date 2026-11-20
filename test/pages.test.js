@@ -127,3 +127,21 @@ test('merch: bare-number prices shown as colones', async () => {
   assert.match(html, /₡1\.000/);
   assert.match(html, /\$20/);
 });
+
+test('"More than beer" section is editable and hides when empty', async () => {
+  const put = (body) => s.req('/api/more', { method: 'PUT', headers: { 'Content-Type': 'application/json', ...s.auth() }, body: JSON.stringify(body) });
+  let html = await (await s.req('/')).text();
+  assert.match(html, /Fruit Ciders/, 'seeded cards render');
+  assert.match(html, /<source type="image\/webp" srcset="\/img\/cas-cider\.webp\?v=\w+">/);
+  assert.equal((await put({ title: 'Drinks', title_es: 'Bebidas', cards: [{ title: 'Kombucha', title_es: 'Kombucha CR', text: 'On <tap>', look: 'cocktail' }] })).status, 200);
+  html = await (await s.req('/')).text();
+  assert.match(html, /<h2 id="more-h">Drinks<\/h2>/);
+  assert.match(html, /On &lt;tap&gt;/);
+  assert.match(html, /class="glass"/);
+  assert.match(await (await s.req('/es')).text(), /Bebidas[\s\S]*Kombucha CR/);
+  assert.equal((await put({ cards: [{ title: 'x', image: 'https://evil/x.jpg' }] })).status, 400, 'only uploaded images');
+  assert.equal((await put({ cards: [] })).status, 200);
+  html = await (await s.req('/')).text();
+  assert.match(html, /<section class="more" id="more" hidden/);
+  assert.match(html, /<li hidden><a href="#more"/);
+});

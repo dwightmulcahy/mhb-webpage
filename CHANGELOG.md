@@ -6,6 +6,7 @@ Full generated notes and Docker pull commands are on [GitHub Releases](https://g
 ## [Unreleased]
 ### Added
 - Announcements section under the hero, editable by staff (owners and editors) in `/admin` → **Announcements**: EN/ES text, type (news, important, special, schedule change), optional button link, and optional show-from / show-until dates.
+- "More than beer" (Beer. Cider. Cocktails.) section is now editable in `/admin` → **Beer · Cider · Cocktails**: section headings and cards (EN/ES text, photo / logo / cocktail picture, photo description).
 ### Changed
 - Home page: the Events section (and its nav/footer links) hides when there are no upcoming events; links to hidden New Release / Announcements sections hide too.
 - Home page taplist: headings nest under "Current Taplist" (h3/h4) and the hours/phone strip is left out, since Visit and the footer already show it. The TV board is unchanged.

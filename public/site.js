@@ -74,6 +74,26 @@
     }).join('');
   }
 
+  // "More than beer" cards. A .webp next to a bundled /img/ jpg is offered to browsers that support it.
+  const COCKTAIL_SVG = '<svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 28h76L60 70z"/><path d="M60 70v30M40 102h40"/><path d="M34 40h52"/><circle cx="86" cy="24" r="12"/><path d="M78 16l16 16"/><path d="M70 12 58 40"/></svg>';
+  const WEBP = new Set(['/img/cas-cider.jpg']);
+  function renderMore(doc, lang, t) {
+    doc = doc || {};
+    const cards = doc.cards || [];
+    if (!cards.length) return '';
+    const head = `<div class="eyebrow">${esc(pick(doc, 'eyebrow', lang) || t('more.eyebrow'))}</div><h2 id="more-h">${esc(pick(doc, 'title', lang) || t('more.title'))}</h2>`;
+    return head + `<div class="trio">${cards.map((c) => {
+      let pic;
+      if (c.look === 'cocktail') pic = `<div class="glass" aria-hidden="true">${COCKTAIL_SVG}</div>`;
+      else if (c.look === 'photo' && c.image) {
+        const img = `<img src="${esc(c.image)}" alt="${esc(c.alt || '')}" loading="lazy" decoding="async" width="900" height="900">`;
+        pic = WEBP.has(c.image) ? `<picture><source type="image/webp" srcset="${esc(c.image.replace(/\.jpg$/, '.webp'))}">${img}</picture>` : img;
+      } else pic = '<div class="tile" aria-hidden="true"><img src="/img/logo-og-white.png" alt="" loading="lazy" width="700" height="428"></div>';
+      const text = pick(c, 'text', lang);
+      return `<article${c.look === 'cocktail' ? ' class="cocktail"' : ''}>${pic}<h3>${esc(pick(c, 'title', lang))}</h3>${text ? `<p>${esc(text)}</p>` : ''}</article>`;
+    }).join('')}</div>`;
+  }
+
   // A bare number like "2500" is shown as colones ("₡2.500"); anything else ("$5", "₡10.000 c/u") as typed.
   const fmtPrice = (p) => {
     const s = String(p || '').trim();
@@ -262,5 +282,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, fmtPrice, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, fmtPrice, renderMore, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
 })(typeof window !== 'undefined' ? window : globalThis);

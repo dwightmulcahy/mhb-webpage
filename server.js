@@ -46,6 +46,7 @@ const STORES = {
   taps: { file: 'taplist.json' },
   events: { file: 'events.json', schema: 'events' },
   announcements: { file: 'announcements.json', schema: 'announcements' },
+  more: { file: 'more.json', schema: 'more' },
   merch: { file: 'merch.json', schema: 'merch' },
   places: { file: 'places.json', schema: 'places' },
   social: { file: 'social.json', schema: 'social' },
@@ -654,7 +655,7 @@ function renderHome(req, lang) {
   const t = (k) => I18N.tFor(lang, k);
   const base = baseUrl(req);
   const url = base + (lang === 'es' ? '/es' : '/');
-  const data = { taps: readStore('taps'), events: readStore('events'), announcements: readStore('announcements'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases'), mobiletap: readStore('mobiletap'), info: readStore('info') };
+  const data = { taps: readStore('taps'), events: readStore('events'), announcements: readStore('announcements'), more: readStore('more'), merch: readStore('merch'), places: readStore('places'), social: readStore('social'), releases: readStore('releases'), mobiletap: readStore('mobiletap'), info: readStore('info') };
   const beers = MHB.beers(data.taps).length;
   const banner = MHBSite.renderBanner(data.events, lang, t);
   const head = [
@@ -695,6 +696,8 @@ function renderHome(req, lang) {
     .replace('id="bookTap" href="https://api.whatsapp.com/send?phone=50687337046"', `id="bookTap" href="${escAttr(MHBSite.waLink(data.mobiletap, lang))}"`)
     .replace('<!--@announce-->', MHBSite.renderAnnouncements(data.announcements, lang, t))
     .replace('<section class="announce" id="news"', MHBSite.currentAnnouncements(data.announcements).length ? '<section class="announce" id="news"' : '<section class="announce" id="news" hidden')
+    .replace('<!--@more-->', () => versionAssets(MHBSite.renderMore(data.more, lang, t)))
+    .replace('<section class="more" id="more"', (data.more.cards || []).length ? '<section class="more" id="more"' : '<section class="more" id="more" hidden')
     .replace('<!--@release-->', MHBSite.renderRelease(data.releases, lang, t))
     .replace('<section class="release" id="new"', MHBSite.currentRelease(data.releases) ? '<section class="release" id="new"' : '<section class="release" id="new" hidden')
     .replace('<section class="events" id="events"', MHBSite.upcoming(data.events).length ? '<section class="events" id="events"' : '<section class="events" id="events" hidden')
@@ -715,7 +718,7 @@ function renderHome(req, lang) {
 
 function sitemap(req) {
   const base = baseUrl(req);
-  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('announcements').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated, readStore('mobiletap').updated, readStore('info').updated]
+  const last = [readStore('taps').publishedAt, readStore('events').updated, readStore('announcements').updated, readStore('more').updated, readStore('merch').updated, readStore('places').updated, readStore('social').updated, readStore('releases').updated, readStore('mobiletap').updated, readStore('info').updated]
     .filter(Boolean).sort().pop() || new Date().toISOString();
   const alt = `<xhtml:link rel="alternate" hreflang="en" href="${base}/"/><xhtml:link rel="alternate" hreflang="es" href="${base}/es"/>`;
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -809,7 +812,7 @@ const server = http.createServer((req, res) => {
     if (p === '/api/version') return send(req, res, 200, JSON.stringify(BUILD), undefined, { 'Cache-Control': 'no-store' });
     const redirect = canonicalRedirect(req);
     if (redirect) { res.writeHead(301, { Location: redirect, 'Cache-Control': 'public, max-age=86400', ...BASE_HEADERS, ...hsts(req) }); return res.end(); }
-    const api = p.match(/^\/api\/(taps|events|announcements|merch|places|social|releases|mobiletap|info|login|logout|me|users|audit|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
+    const api = p.match(/^\/api\/(taps|events|announcements|more|merch|places|social|releases|mobiletap|info|login|logout|me|users|audit|upload|backup|history\/\w+(?:\/[\w-]+)?)$/);
     if (api) return handleApi(req, res, api[1]).catch((e) => jsonErr(req, res, 500, e.message));
     if (p === '/api/schemas') return send(req, res, 200, JSON.stringify(SCHEMAS), undefined, { 'Cache-Control': 'no-store' });
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(req, res, 405, 'method not allowed', 'text/plain');
