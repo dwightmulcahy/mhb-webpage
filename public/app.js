@@ -16,21 +16,28 @@
   };
   langBtn.addEventListener('click', (e) => { e.preventDefault(); I18N.toggle(); });
 
+  // Show/hide a section and the nav/footer links that point to it.
+  const showSection = (id, on) => {
+    document.getElementById(id).hidden = !on;
+    document.querySelectorAll(`li > a[href="#${id}"]`).forEach((a) => { a.parentElement.hidden = !on; });
+  };
+
   // ---------- renderers ----------
   const drawTaps = () => {
     const d = data.taps; if (!d) return;
-    $('#board').innerHTML = MHB.renderBoard(d, I18N.lang);
+    $('#board').innerHTML = MHB.renderBoard(d, I18N.lang, { page: true });
     $('#updated').textContent = `${MHB.beers(d).length} ${t('taps.onTap')}${d.publishedAt ? ' · ' + t('taps.updated') + ' ' + MHB.ago(d.publishedAt, I18N.lang) : ''}`;
   };
   const drawEvents = () => {
     if (!data.events) return;
     $('#eventList').innerHTML = S.renderEvents(data.events, I18N.lang, t);
+    showSection('events', S.upcoming(data.events).length > 0);
     drawBanner();
   };
   const drawAnnounce = () => {
     if (!data.announcements) return;
     $('#annList').innerHTML = S.renderAnnouncements(data.announcements, I18N.lang, t);
-    $('#news').hidden = !S.currentAnnouncements(data.announcements).length;
+    showSection('news', S.currentAnnouncements(data.announcements).length > 0);
   };
   const drawMerch = () => { if (data.merch) $('#merchList').innerHTML = S.renderMerch(data.merch, I18N.lang, t); };
   const drawPlaces = () => { if (data.places) $('#placeList').innerHTML = S.renderPlaces(data.places, I18N.lang, t); };
@@ -44,7 +51,7 @@
   const drawRelease = () => {
     if (!data.releases) return;
     $('#releaseBox').innerHTML = S.renderRelease(data.releases, I18N.lang, t);
-    $('#new').hidden = !S.currentRelease(data.releases);
+    showSection('new', !!S.currentRelease(data.releases));
   };
 
   // ---------- next-event banner ----------

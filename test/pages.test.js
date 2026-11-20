@@ -102,3 +102,28 @@ test('non-GET on static paths is 405', async () => {
 test('malformed URL is 400', async () => {
   assert.equal((await s.req('/%E0%A4%A')).status, 400);
 });
+
+test('home page: empty sections and their links are hidden; taplist headings nest under the section', async () => {
+  const auth = s.auth();
+  const put = (route, body) => s.req('/api/' + route, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...auth }, body: JSON.stringify(body) });
+  assert.equal((await put('events', { events: [] })).status, 200);
+  let html = await (await s.req('/')).text();
+  assert.match(html, /<section class="events" id="events" hidden/);
+  assert.doesNotMatch(html, /<li><a href="#events"/, 'nav + footer links hidden');
+  assert.match(html, /<li hidden><a href="#events"/);
+  assert.equal((await put('events', { events: [{ title: 'Trivia', date: '2099-01-01' }] })).status, 200);
+  html = await (await s.req('/')).text();
+  assert.match(html, /<section class="events" id="events" aria-labelledby/);
+  assert.match(html, /<li><a href="#events"/);
+  const board = html.split('id="board">')[1].split('</section>\n')[0];
+  assert.doesNotMatch(board, /<h2/, 'no h2 inside the taplist');
+  assert.doesNotMatch(board, /ch-foot/, 'hours strip left out on the home page');
+});
+
+test('merch: bare-number prices shown as colones', async () => {
+  const r = await s.req('/api/merch', { method: 'PUT', headers: { 'Content-Type': 'application/json', ...s.auth() }, body: JSON.stringify({ items: [{ name: 'Sticker', price: '1000' }, { name: 'Shirt', price: '$20' }] }) });
+  assert.equal(r.status, 200);
+  const html = await (await s.req('/')).text();
+  assert.match(html, /₡1\.000/);
+  assert.match(html, /\$20/);
+});

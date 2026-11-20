@@ -74,6 +74,11 @@
     }).join('');
   }
 
+  // A bare number like "2500" is shown as colones ("₡2.500"); anything else ("$5", "₡10.000 c/u") as typed.
+  const fmtPrice = (p) => {
+    const s = String(p || '').trim();
+    return /^\d+$/.test(s) ? '₡' + Number(s).toLocaleString('es-CR').replace(/\s|\u00a0|\u202f/g, '.') : s;
+  };
   function renderMerch(doc, lang, t) {
     const items = (doc && doc.items) || [];
     if (!items.length) return `<p class="none">${t('merch.none')}</p>`;
@@ -81,7 +86,7 @@
       const name = pick(m, 'name', lang), desc = pick(m, 'description', lang);
       return `<article class="merch-card${m.available === false ? ' sold' : ''}">
         <div class="merch-img">${m.image ? `<img src="${esc(m.image)}" alt="${esc(name)}" loading="lazy" decoding="async" width="600" height="600">` : ''}${m.available === false ? `<span class="sold-tag">${t('merch.soldOut')}</span>` : ''}</div>
-        <div class="merch-body"><h3>${esc(name)}</h3>${m.price ? `<span class="price">${esc(m.price)}</span>` : ''}${desc ? `<p>${esc(desc)}</p>` : ''}</div>
+        <div class="merch-body"><h3>${esc(name)}</h3>${m.price ? `<span class="price">${esc(fmtPrice(m.price))}</span>` : ''}${desc ? `<p>${esc(desc)}</p>` : ''}</div>
       </article>`;
     }).join('');
   }
@@ -257,5 +262,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, fmtPrice, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
 })(typeof window !== 'undefined' ? window : globalThis);

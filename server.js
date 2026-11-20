@@ -680,13 +680,14 @@ function renderHome(req, lang) {
     `<script type="application/ld+json">${jsonForScript(structuredData(lang, url, base, data))}</script>`,
   ].join('\n');
 
+  const hiddenIds = [];
   let html = TEMPLATE
     .replace('<html lang="en">', `<html lang="${lang}">`)
     .replace('<!--@head-->', head)
     .replace('<!--@banner-->', banner)
     .replace('id="banner" role="region"', `id="banner"${banner ? '' : ' hidden'} role="region"`)
     .replace('<!--@updated-->', escAttr(`${beers} ${t('taps.onTap')}`))
-    .replace('<!--@board-->', MHB.renderBoard(data.taps, lang))
+    .replace('<!--@board-->', MHB.renderBoard(data.taps, lang, { page: true }))
     .replace('<!--@events-->', MHBSite.renderEvents(data.events, lang, t))
     .replace('<!--@places-->', MHBSite.renderPlaces(data.places, lang, t))
     .replace('<!--@merch-->', MHBSite.renderMerch(data.merch, lang, t))
@@ -696,12 +697,16 @@ function renderHome(req, lang) {
     .replace('<section class="announce" id="news"', MHBSite.currentAnnouncements(data.announcements).length ? '<section class="announce" id="news"' : '<section class="announce" id="news" hidden')
     .replace('<!--@release-->', MHBSite.renderRelease(data.releases, lang, t))
     .replace('<section class="release" id="new"', MHBSite.currentRelease(data.releases) ? '<section class="release" id="new"' : '<section class="release" id="new" hidden')
+    .replace('<section class="events" id="events"', MHBSite.upcoming(data.events).length ? '<section class="events" id="events"' : '<section class="events" id="events" hidden')
     .replace('<!--@factOpen-->', MHBSite.renderFactOpen(data.info, lang, t))
     .replace('<!--@visit-->', MHBSite.renderVisit(data.info, lang, t))
     .replace('<!--@footVisit-->', MHBSite.renderFootVisit(data.info, lang, t))
     .replace('<!--@year-->', String(new Date().getFullYear()))
     .replace('<!--@data-->', jsonForScript(data))
     .replace('id="langBtn" href="/es" hreflang="es"', lang === 'es' ? 'id="langBtn" href="/" hreflang="en"' : 'id="langBtn" href="/es" hreflang="es"');
+  // Nav/footer links to a section that's hidden (nothing to show) are hidden too.
+  html = html.replace(/<section class="\w+" id="(\w+)"[^>]*\bhidden\b/g, (m, id) => { hiddenIds.push(id); return m; });
+  for (const id of hiddenIds) html = html.replaceAll(`<li><a href="#${id}"`, `<li hidden><a href="#${id}"`);
   // Fill every data-i18n element / attribute with the right language
   html = html.replace(/(<(\w+)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)([\s\S]*?)(<\/\2>)/g, (m, open, tag, key, _inner, close) => open + t(key) + close);
   html = html.replace(/data-i18n-attr="([^"]+)"/g, (m, spec) => m + spec.split(';').map((p) => { const [a, k] = p.split(':'); return ` ${a}="${escAttr(t(k))}"`; }).join(''));
