@@ -27,6 +27,11 @@
     $('#eventList').innerHTML = S.renderEvents(data.events, I18N.lang, t);
     drawBanner();
   };
+  const drawAnnounce = () => {
+    if (!data.announcements) return;
+    $('#annList').innerHTML = S.renderAnnouncements(data.announcements, I18N.lang, t);
+    $('#news').hidden = !S.currentAnnouncements(data.announcements).length;
+  };
   const drawMerch = () => { if (data.merch) $('#merchList').innerHTML = S.renderMerch(data.merch, I18N.lang, t); };
   const drawPlaces = () => { if (data.places) $('#placeList').innerHTML = S.renderPlaces(data.places, I18N.lang, t); };
   const drawSocial = () => { if (data.social) $('#socialList').innerHTML = S.renderSocial(data.social); };
@@ -109,6 +114,7 @@
   // ---------- live updates ----------
   MHB.watch((d) => { data.taps = d; drawTaps(); }, () => { $('#updated').textContent = t('taps.unavailable'); }, 60000, '/api/taps', data.taps);
   MHB.watch((d) => { data.events = d; drawEvents(); }, null, 300000, '/api/events', data.events);
+  MHB.watch((d) => { data.announcements = d; drawAnnounce(); }, null, 300000, '/api/announcements', data.announcements);
   MHB.watch((d) => { data.merch = d; drawMerch(); }, null, 600000, '/api/merch', data.merch);
   MHB.watch((d) => { data.places = d; drawPlaces(); }, null, 600000, '/api/places', data.places);
   MHB.watch((d) => { data.social = d; drawSocial(); }, null, 600000, '/api/social', data.social);
@@ -116,7 +122,7 @@
   MHB.watch((d) => { data.mobiletap = d; syncBook(); }, null, 600000, '/api/mobiletap', data.mobiletap);
   MHB.watch((d) => { data.info = d; drawInfo(); }, null, 600000, '/api/info', data.info);
 
-  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); drawInfo(); syncBook(); });
+  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawAnnounce(); drawMerch(); drawPlaces(); drawRelease(); drawInfo(); syncBook(); });
   $('#yr').textContent = new Date().getFullYear();
   if (I18N.changed) I18N.apply(); else { syncLangBtn(); drawBanner(); syncBook(); }
 })();

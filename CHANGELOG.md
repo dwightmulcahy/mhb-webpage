@@ -4,6 +4,8 @@ All notable changes. Versions follow [SemVer](https://semver.org); entries come 
 Full generated notes and Docker pull commands are on [GitHub Releases](https://github.com/dwightmulcahy/mhb-webpage/releases).
 
 ## [Unreleased]
+### Added
+- Announcements section under the hero, editable by staff (owners and editors) in `/admin` → **Announcements**: EN/ES text, type (news, important, special, schedule change), optional button link, and optional show-from / show-until dates.
 
 ## [1.2.3] — 2026-11-16
 ### Fixed

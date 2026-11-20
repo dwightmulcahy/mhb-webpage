@@ -51,6 +51,29 @@
       <button class="banner-x" type="button" aria-label="${t('banner.close')}">×</button>`;
   }
 
+  // Announcements: shown while "Show on site" is ticked and today (Costa Rica) is within from..until (either optional).
+  function currentAnnouncements(doc) {
+    const today = todayCR();
+    return ((doc && doc.announcements) || []).filter((a) => a.active !== false && (!a.from || a.from <= today) && (!a.until || a.until >= today));
+  }
+  const ANN_ICON = { news: '📣', important: '⚠️', special: '🍻', closure: '🔒' };
+  function renderAnnouncements(doc, lang, t) {
+    return currentAnnouncements(doc).map((a) => {
+      const kind = ANN_ICON[a.kind] ? a.kind : 'news';
+      const title = pick(a, 'title', lang), body = pick(a, 'body', lang);
+      const until = a.until ? `${t('ann.until')} ${fmtDate(a.until, lang, { weekday: 'short', month: 'short', day: 'numeric' })}` : '';
+      return `<article class="ann ann-${kind}">
+        <span class="ann-icon" aria-hidden="true">${ANN_ICON[kind]}</span>
+        <div class="ann-body">
+          <div class="ann-meta"><span class="ann-tag">${t('ann.kind.' + kind)}</span>${until ? `<span>${esc(until)}</span>` : ''}</div>
+          <h3>${esc(title)}</h3>
+          ${body ? `<p>${esc(body).replace(/\n/g, '<br>')}</p>` : ''}
+          ${a.link ? `<a class="btn primary" href="${esc(a.link)}" target="_blank" rel="noopener">${esc(pick(a, 'linkText', lang) || t('ann.more'))}</a>` : ''}
+        </div>
+      </article>`;
+    }).join('');
+  }
+
   function renderMerch(doc, lang, t) {
     const items = (doc && doc.items) || [];
     if (!items.length) return `<p class="none">${t('merch.none')}</p>`;
@@ -234,5 +257,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
 })(typeof window !== 'undefined' ? window : globalThis);

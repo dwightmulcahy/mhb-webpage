@@ -202,6 +202,24 @@ section { padding: 72px 0; scroll-margin-top: 60px; }
 .events .none { color: #b9b0a0; }
 @media (max-width: 720px) { .event { grid-template-columns: 1fr; } .event .poster img { max-height: 340px; object-position: top; } }
 
+/* announcements */
+.announce { background: var(--cream-2); padding: 48px 0; }
+.announce[hidden] { display: none; }
+.ann-list { display: grid; gap: 14px; margin-top: 22px; }
+.ann { display: flex; gap: 16px; align-items: flex-start; background: #fff; border-radius: var(--radius); padding: 18px 20px; box-shadow: 0 8px 24px rgba(20,18,16,.06); border-left: 6px solid var(--gold); }
+.ann-important { border-left-color: #c8202a; }
+.ann-special { border-left-color: #2f7d4f; }
+.ann-closure { border-left-color: var(--ink); }
+.ann-icon { font-size: 1.8rem; line-height: 1; }
+.ann-body { flex: 1; min-width: 0; }
+.ann-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+.ann-tag { font: 700 .7rem var(--body); letter-spacing: .14em; text-transform: uppercase; background: var(--ink); color: var(--gold); padding: 3px 9px; border-radius: 999px; }
+.ann-important .ann-tag { background: #c8202a; color: #fff; }
+.ann-body h3 { font-size: 1.7rem; }
+.ann-body p { margin: 6px 0 0; color: #3e3830; }
+.ann-body .btn { margin-top: 12px; }
+@media (max-width: 560px) { .ann { padding: 14px 16px; gap: 12px; } .ann-icon { font-size: 1.4rem; } }
+
 /* merch */
 .merch { background: var(--cream-2); }
 .merch .lead { font-size: 1.1rem; margin: 12px 0 0; }
