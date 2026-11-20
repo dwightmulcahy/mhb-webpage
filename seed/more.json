@@ -1,0 +1,39 @@
+{
+  "updated": "2026-11-20T00:00:00.000Z",
+  "eyebrow": "More than beer",
+  "eyebrow_es": "Más que cerveza",
+  "title": "Beer. Cider. Cocktails.",
+  "title_es": "Cerveza. Sidra. Cócteles.",
+  "cards": [
+    {
+      "id": "beer",
+      "title": "Craft Beer",
+      "title_es": "Cerveza Artesanal",
+      "text": "From a Citra-soaked IPA and a clean German pilsner to a Madagascar-vanilla stout, brewed in small batches on our 7-barrel system.",
+      "text_es": "Desde una IPA cargada de Citra y una pilsner alemana limpia hasta una stout con vainilla de Madagascar, en lotes pequeños en nuestro sistema de 7 barriles.",
+      "look": "logo",
+      "alt": "",
+      "image": ""
+    },
+    {
+      "id": "cider",
+      "title": "Fruit Ciders",
+      "title_es": "Sidras de Fruta",
+      "text": "Gluten-free ciders pressed with Costa Rican fruit. Try the Cas Cider, made from 100% cas, or the Maracas Cider with extra maracuyá.",
+      "text_es": "Sidras sin gluten hechas con fruta costarricense. Pruebe la Sidra de Cas, 100% cas, o la Sidra Maracuyá con aún más maracuyá.",
+      "look": "photo",
+      "alt": "Cas Cider label: monkey in sunglasses with a glass of cider and cas fruit",
+      "image": "/img/cas-cider.jpg"
+    },
+    {
+      "id": "cocktail",
+      "title": "Cocktails",
+      "title_es": "Cócteles",
+      "text": "Not a beer drinker? The bar is stocked with spirits and mixers for cocktails, so everyone in your group has something to sip.",
+      "text_es": "¿No toma cerveza? Tenemos licores y mezcladores para cócteles, así que todo el grupo tiene algo para disfrutar.",
+      "look": "cocktail",
+      "alt": "",
+      "image": ""
+    }
+  ]
+}

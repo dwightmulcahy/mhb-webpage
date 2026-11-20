@@ -4,6 +4,13 @@ All notable changes. Versions follow [SemVer](https://semver.org); entries come 
 Full generated notes and Docker pull commands are on [GitHub Releases](https://github.com/dwightmulcahy/mhb-webpage/releases).
 
 ## [Unreleased]
+### Added
+- Announcements section under the hero, editable by staff (owners and editors) in `/admin` → **Announcements**: EN/ES text, type (news, important, special, schedule change), optional button link, and optional show-from / show-until dates.
+- "More than beer" (Beer. Cider. Cocktails.) section is now editable in `/admin` → **Beer · Cider · Cocktails**: section headings and cards (EN/ES text, photo / logo / cocktail picture, photo description).
+### Changed
+- Home page: the Events section (and its nav/footer links) hides when there are no upcoming events; links to hidden New Release / Announcements sections hide too.
+- Home page taplist: headings nest under "Current Taplist" (h3/h4) and the hours/phone strip is left out, since Visit and the footer already show it. The TV board is unchanged.
+- Merch prices typed as a bare number (e.g. `2500`) show as colones (`₡2.500`).
 
 ## [1.2.3] — 2026-11-16
 ### Fixed

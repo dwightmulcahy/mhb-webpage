@@ -92,7 +92,7 @@
 
 <main id="app" hidden>
   <div class="wrap">
-    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="places">Where to Find</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button><button data-tab="info">Visit &amp; Contact</button><button data-tab="staff">Staff</button></div>
+    <div class="tabs"><button data-tab="taps" class="on">Taplist</button><button data-tab="events">Events</button><button data-tab="announcements">Announcements</button><button data-tab="places">Where to Find</button><button data-tab="more">Beer · Cider · Cocktails</button><button data-tab="merch">Merch</button><button data-tab="releases">New Release</button><button data-tab="mobiletap">Mobile Tap</button><button data-tab="social">Follow Us</button><button data-tab="info">Visit &amp; Contact</button><button data-tab="staff">Staff</button></div>
     <div id="tabTaps">
     <p style="color:var(--muted);margin-top:0">Uses the <b>TapListBuilder</b> JSON format. Import a file exported from TapListBuilder, or edit here and Export to take it back. Items in the list = on tap; <b>Off tap</b> moves a beer to Saved beverages. Changes go live on <b>Save &amp; publish</b>.</p>
     <div class="toolbar">
@@ -213,7 +213,7 @@ function renderColl() {
   const sc = MHB_SCHEMAS[tab], c = COLL[tab]; if (!c) return;
   const list = c.doc[sc.listKey];
   $('#collHelp').textContent = sc.help;
-  $('#addColl').textContent = `+ Add ${{ events: 'event', places: 'place', merch: 'merch item', social: 'link', releases: 'release', mobiletap: 'custom message', info: 'hours row' }[tab]}`;
+  $('#addColl').textContent = `+ Add ${{ events: 'event', announcements: 'announcement', more: 'card', places: 'place', merch: 'merch item', social: 'link', releases: 'release', mobiletap: 'custom message', info: 'hours row' }[tab]}`;
   const imgField = sc.fields.find((f) => f.type === 'image');
   $('#collSettings').innerHTML = sc.settings ? `<div class="ed settings" style="grid-template-columns:1fr"><div class="f">
     <div class="w4 kind">SETTINGS</div>
@@ -227,7 +227,8 @@ function renderColl() {
     ${tab === 'mobiletap' ? `<div class="w4"><button type="button" class="mv" data-preview="${esc(c.doc.pick || 'random')}">👁 Preview popup</button> <span style="color:var(--muted);font-size:.85rem">Preview shows the last <b>saved</b> version — Save &amp; publish first.</span></div>` : ''}
   </div></div>` : '';
   $('#collRows').innerHTML = list.map((row, i) => {
-    const past = tab === 'events' && row.date && row.date < todayCR;
+    const past = (tab === 'events' && row.date && row.date < todayCR) || (tab === 'announcements' && (row.until && row.until < todayCR));
+    const annNote = tab !== 'announcements' ? '' : past ? 'Expired — hidden on site' : !row.active ? 'Hidden on site' : row.from && row.from > todayCR ? `Scheduled — shows from ${esc(row.from)}` : 'Showing on site';
     return `<div class="ed ${past ? 'past' : ''}" data-i="${i}"${imgField ? '' : ' style="grid-template-columns:1fr"'}>
       <div class="side"${imgField ? '' : ' hidden'}>
         ${imgField ? `${row.image ? `<img class="thumb" src="${esc(row.image)}" alt="">` : '<div class="thumb"></div>'}
@@ -239,7 +240,7 @@ function renderColl() {
         ${sc.fields.filter((f) => f.type !== 'image').map((f) => field(f, row[f.k])).join('')}
         <div class="w4" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
           <span>${tab === 'events' ? '' : moveBtns.replace(/ <button class="danger mv".*$/, '')}${tab === 'mobiletap' && row.id ? ` <button type="button" class="mv" data-preview="${esc(row.id)}">👁 Preview</button>` : ''}</span>
-          <span>${past ? '<span style="color:var(--muted);margin-right:10px">Past — hidden on site</span>' : ''}<button class="danger mv" data-act="del">✕ Delete</button></span>
+          <span>${annNote ? `<span style="color:var(--muted);margin-right:10px">${annNote}</span>` : past ? '<span style="color:var(--muted);margin-right:10px">Past — hidden on site</span>' : ''}<button class="danger mv" data-act="del">✕ Delete</button></span>
         </div>
       </div>
     </div>`;

@@ -6,12 +6,14 @@ Node 22 server with no dependencies, packaged as a Docker image.
 |---|---|
 | `/` and `/es` | Public site, English and Spanish, rendered on the server for search engines. The toggle in the nav switches between them. |
 | `/board` | Full-screen chalkboard taplist for the taproom TV. Refreshes every 30 s; `?lang=es` for Spanish. |
-| `/admin` | Staff editor with **Taplist**, **Events**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap**, **Follow Us** and **Visit & Contact** tabs, plus **Staff** (accounts + activity log). See *Staff accounts* below. |
+| `/admin` | Staff editor with **Taplist**, **Events**, **Announcements**, **Beer · Cider · Cocktails**, **Where to Find**, **Merch**, **New Release**, **Mobile Tap**, **Follow Us** and **Visit & Contact** tabs, plus **Staff** (accounts + activity log). See *Staff accounts* below. |
 | `/sitemap.xml`, `/robots.txt` | Generated automatically; submit the sitemap in Google Search Console. |
 
 ## Data (in `./data`, survives rebuilds)
 - `taplist.json`: TapListBuilder format. Import/Export it from `/admin`.
 - `events.json`: events. Past events are hidden automatically (Costa Rica time). The next one shows in the top banner.
+- `announcements.json`: notices in the Announcements section under the hero (closures, specials, news). Each can be scheduled with optional "Show from" / "Show until" dates (Costa Rica time) or hidden with "Show on site"; the section disappears when nothing is current. Editable by owners and editors.
+- `more.json`: the "More than beer" section (heading plus cards; each card has EN/ES text and a photo, the logo or the cocktail drawing).
 - `places.json`: the "Where to Find Us" list.
 - `merch.json`: merchandise items.
 - `releases.json`: the NEW BEER RELEASE highlight (the first one marked "Show on site").

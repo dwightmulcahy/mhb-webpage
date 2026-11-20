@@ -12,13 +12,13 @@ const put = (route, body, headers = s.auth()) =>
   s.req('/api/' + route, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) });
 
 test('stores are seeded on first start', () => {
-  for (const f of ['taplist.json', 'events.json', 'merch.json', 'places.json', 'social.json', 'releases.json', 'mobiletap.json']) {
+  for (const f of ['taplist.json', 'events.json', 'announcements.json', 'more.json', 'merch.json', 'places.json', 'social.json', 'releases.json', 'mobiletap.json']) {
     assert.ok(fs.existsSync(path.join(s.dataDir, f)), f);
   }
 });
 
 test('GET stores is public and not cached', async () => {
-  for (const r of ['taps', 'events', 'merch', 'places', 'social', 'releases', 'mobiletap', 'schemas']) {
+  for (const r of ['taps', 'events', 'announcements', 'more', 'merch', 'places', 'social', 'releases', 'mobiletap', 'schemas']) {
     const res = await s.req('/api/' + r);
     assert.equal(res.status, 200, r);
     assert.equal(res.headers.get('cache-control'), 'no-store');
@@ -124,4 +124,35 @@ test('brute-force lockout after 10 wrong passwords (per client IP)', async () =>
   assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer wrong', ...ip } })).status, 429);
   assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + PASSWORD, ...ip } })).status, 429, 'even the right password while locked');
   assert.equal((await s.req('/api/login', { method: 'POST', headers: { Authorization: 'Bearer ' + PASSWORD, 'CF-Connecting-IP': '203.0.113.78' } })).status, 200, 'other IPs unaffected');
+});
+
+test('announcements: shown only while active and in date range', async () => {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Costa_Rica' }).format(new Date());
+  const r = await put('announcements', { announcements: [
+    { title: 'Closed for Christmas', body: 'Line one\nline <two>', kind: 'closure', until: '2099-12-26' },
+    { title: 'Hidden one', active: false },
+    { title: 'Expired one', until: '2000-01-01' },
+    { title: 'Future one', from: '2099-01-01' },
+    { title: 'Bad kind', kind: 'nope', from: today },
+  ] });
+  assert.equal(r.status, 200);
+  const d = await r.json();
+  assert.equal(d.announcements[0].active, true, 'active defaults to true');
+  assert.equal(d.announcements[4].kind, 'news', 'unknown kind falls back');
+  const html = await (await s.req('/')).text();
+  assert.match(html, /<section class="announce" id="news" aria-labelledby/);
+  assert.match(html, /Closed for Christmas/);
+  assert.match(html, /Line one<br>line &lt;two&gt;/, 'escaped, newlines kept');
+  assert.match(html, /Bad kind/);
+  for (const t of ['Hidden one', 'Expired one', 'Future one']) assert.doesNotMatch(html.split('id="annList"')[1].split('</section>')[0], new RegExp(t), t);
+  const es = await (await s.req('/es')).text();
+  assert.match(es, /Cambio de horario/);
+});
+
+test('announcements: section hidden when none, until before from rejected', async () => {
+  assert.equal((await put('announcements', { announcements: [{ title: 'x', from: '2099-02-01', until: '2099-01-01' }] })).status, 400);
+  assert.equal((await put('announcements', { announcements: [{ title: '' }] })).status, 400);
+  assert.equal((await put('announcements', { announcements: [] })).status, 200);
+  assert.match(await (await s.req('/')).text(), /<section class="announce" id="news" hidden/);
+  assert.equal((await put('announcements', { announcements: [] }, { Authorization: 'Bearer nope' })).status, 401);
 });

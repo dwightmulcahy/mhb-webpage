@@ -51,6 +51,54 @@
       <button class="banner-x" type="button" aria-label="${t('banner.close')}">×</button>`;
   }
 
+  // Announcements: shown while "Show on site" is ticked and today (Costa Rica) is within from..until (either optional).
+  function currentAnnouncements(doc) {
+    const today = todayCR();
+    return ((doc && doc.announcements) || []).filter((a) => a.active !== false && (!a.from || a.from <= today) && (!a.until || a.until >= today));
+  }
+  const ANN_ICON = { news: '📣', important: '⚠️', special: '🍻', closure: '🔒' };
+  function renderAnnouncements(doc, lang, t) {
+    return currentAnnouncements(doc).map((a) => {
+      const kind = ANN_ICON[a.kind] ? a.kind : 'news';
+      const title = pick(a, 'title', lang), body = pick(a, 'body', lang);
+      const until = a.until ? `${t('ann.until')} ${fmtDate(a.until, lang, { weekday: 'short', month: 'short', day: 'numeric' })}` : '';
+      return `<article class="ann ann-${kind}">
+        <span class="ann-icon" aria-hidden="true">${ANN_ICON[kind]}</span>
+        <div class="ann-body">
+          <div class="ann-meta"><span class="ann-tag">${t('ann.kind.' + kind)}</span>${until ? `<span>${esc(until)}</span>` : ''}</div>
+          <h3>${esc(title)}</h3>
+          ${body ? `<p>${esc(body).replace(/\n/g, '<br>')}</p>` : ''}
+          ${a.link ? `<a class="btn primary" href="${esc(a.link)}" target="_blank" rel="noopener">${esc(pick(a, 'linkText', lang) || t('ann.more'))}</a>` : ''}
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  // "More than beer" cards. A .webp next to a bundled /img/ jpg is offered to browsers that support it.
+  const COCKTAIL_SVG = '<svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 28h76L60 70z"/><path d="M60 70v30M40 102h40"/><path d="M34 40h52"/><circle cx="86" cy="24" r="12"/><path d="M78 16l16 16"/><path d="M70 12 58 40"/></svg>';
+  const WEBP = new Set(['/img/cas-cider.jpg']);
+  function renderMore(doc, lang, t) {
+    doc = doc || {};
+    const cards = doc.cards || [];
+    if (!cards.length) return '';
+    const head = `<div class="eyebrow">${esc(pick(doc, 'eyebrow', lang) || t('more.eyebrow'))}</div><h2 id="more-h">${esc(pick(doc, 'title', lang) || t('more.title'))}</h2>`;
+    return head + `<div class="trio">${cards.map((c) => {
+      let pic;
+      if (c.look === 'cocktail') pic = `<div class="glass" aria-hidden="true">${COCKTAIL_SVG}</div>`;
+      else if (c.look === 'photo' && c.image) {
+        const img = `<img src="${esc(c.image)}" alt="${esc(c.alt || '')}" loading="lazy" decoding="async" width="900" height="900">`;
+        pic = WEBP.has(c.image) ? `<picture><source type="image/webp" srcset="${esc(c.image.replace(/\.jpg$/, '.webp'))}">${img}</picture>` : img;
+      } else pic = '<div class="tile" aria-hidden="true"><img src="/img/logo-og-white.png" alt="" loading="lazy" width="700" height="428"></div>';
+      const text = pick(c, 'text', lang);
+      return `<article${c.look === 'cocktail' ? ' class="cocktail"' : ''}>${pic}<h3>${esc(pick(c, 'title', lang))}</h3>${text ? `<p>${esc(text)}</p>` : ''}</article>`;
+    }).join('')}</div>`;
+  }
+
+  // A bare number like "2500" is shown as colones ("₡2.500"); anything else ("$5", "₡10.000 c/u") as typed.
+  const fmtPrice = (p) => {
+    const s = String(p || '').trim();
+    return /^\d+$/.test(s) ? '₡' + Number(s).toLocaleString('es-CR').replace(/\s|\u00a0|\u202f/g, '.') : s;
+  };
   function renderMerch(doc, lang, t) {
     const items = (doc && doc.items) || [];
     if (!items.length) return `<p class="none">${t('merch.none')}</p>`;
@@ -58,7 +106,7 @@
       const name = pick(m, 'name', lang), desc = pick(m, 'description', lang);
       return `<article class="merch-card${m.available === false ? ' sold' : ''}">
         <div class="merch-img">${m.image ? `<img src="${esc(m.image)}" alt="${esc(name)}" loading="lazy" decoding="async" width="600" height="600">` : ''}${m.available === false ? `<span class="sold-tag">${t('merch.soldOut')}</span>` : ''}</div>
-        <div class="merch-body"><h3>${esc(name)}</h3>${m.price ? `<span class="price">${esc(m.price)}</span>` : ''}${desc ? `<p>${esc(desc)}</p>` : ''}</div>
+        <div class="merch-body"><h3>${esc(name)}</h3>${m.price ? `<span class="price">${esc(fmtPrice(m.price))}</span>` : ''}${desc ? `<p>${esc(desc)}</p>` : ''}</div>
       </article>`;
     }).join('');
   }
@@ -234,5 +282,5 @@
     }).join('');
   }
 
-  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, renderMerch, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
+  g.MHBSite = { esc, todayCR, upcoming, eventId, fmtDate, fmtTime, renderEvents, renderBanner, currentAnnouncements, renderAnnouncements, renderMerch, fmtPrice, renderMore, renderPlaces, renderSocial, renderRelease, currentRelease, waLink, waUrl, fixWa, pickTapMessage, renderTapDialog, hoursGroups, hoursLines, renderFactOpen, renderVisit, renderFootVisit };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -54,21 +54,24 @@
     return { name: has(x.name) ? x.name : it.name, desc: has(x.description) ? x.description : it.description };
   }
 
-  function beer(it, lang) {
+  function beer(it, lang, hn = 'h3') {
     const t = L[lang] || L.en;
     const { name, desc } = tr(it, lang);
     const meta = [esc(it.style)];
     if (!it.hideIbu && has(it.ibu)) meta.push(`${esc(it.ibu)} ${t.ibu}`);
     const b = bitterness(it, t); if (b) meta.push(b);
     return `<article class="ch-beer" style="--chalk:${chalk(it.color)}">
-      <div class="ch-line">${icon(it)}<h3>${esc(name)}</h3><span class="leader"></span><b class="abv">${it.hideAbv || !has(it.abv) ? '' : esc(it.abv) + '%'}</b></div>
+      <div class="ch-line">${icon(it)}<${hn} class="ch-name">${esc(name)}</${hn}><span class="leader"></span><b class="abv">${it.hideAbv || !has(it.abv) ? '' : esc(it.abv) + '%'}</b></div>
       <div class="ch-meta">${meta.filter(Boolean).join(' · ')}${it.isNew ? ` <span class="ch-new">★ ${t.new}</span>` : ''}${it.glutenFree ? ` <span class="ch-gf">${t.gf}</span>` : ''}</div>
       ${has(desc) ? `<p>${esc(desc)}</p>` : ''}
     </article>`;
   }
 
-  // Groups items by divider so each section stays together on the board
-  function renderBoard(data, lang) {
+  // Groups items by divider so each section stays together on the board.
+  // opts.page: embedded in the home page under its own <h2> — headings drop a level and the
+  // hours/phone/location strip is left out (the Visit section and footer already show it).
+  function renderBoard(data, lang, opts = {}) {
+    const [hg, hb, hx] = opts.page ? ['h3', 'h4', 'h3'] : ['h2', 'h3', 'h4'];
     const s = data.settings || {};
     const groups = []; let cur = null; const extras = [];
     for (const it of data.items || []) {
@@ -78,14 +81,14 @@
     }
     const sections = groups.filter((g) => g.beers.length).map((g) => {
       const title = lang === 'es' ? DIVIDERS_ES[String(g.title).toUpperCase()] || g.title : g.title;
-      return `<section class="ch-group">${title ? `<h2 class="ch-h">${esc(title)}</h2>` : ''}${g.beers.map((b) => beer(b, lang)).join('')}</section>`;
+      return `<section class="ch-group">${title ? `<${hg} class="ch-h">${esc(title)}</${hg}>` : ''}${g.beers.map((b) => beer(b, lang, hb)).join('')}</section>`;
     }).join('');
     const extra = extras.length ? `<div class="ch-extras">${extras.map((c) => {
       const title = lang === 'es' ? TEXT_ES[String(c.title).toUpperCase()] || c.title : c.title;
-      return `<div><h4>${esc(title)}</h4><p>${esc(c.body).replace(/\n/g, '<br>')}</p></div>`;
+      return `<div><${hx} class="ch-xh">${esc(title)}</${hx}><p>${esc(c.body).replace(/\n/g, '<br>')}</p></div>`;
     }).join('')}</div>` : '';
     const loc = (s.locationTranslations && s.locationTranslations[lang]) || s.location;
-    const foot = [s.taproomHours && `${esc(s.taproomLabel || 'TAPROOM:')} ${esc(s.taproomHours)}`, s.phone && esc(s.phone), loc && esc(loc)].filter(Boolean).join('  ✦  ');
+    const foot = opts.page ? '' : [s.taproomHours && `${esc(s.taproomLabel || 'TAPROOM:')} ${esc(s.taproomHours)}`, s.phone && esc(s.phone), loc && esc(loc)].filter(Boolean).join('  ✦  ');
     return `<div class="ch-top"><img class="ch-monkeys" src="/img/three-monkeys-chalk.png" alt="See no evil, drink good beer, hear no evil — three chalk monkeys" width="769" height="264"></div>
       <div class="ch-cols">${sections || '<p class="ch-empty">…</p>'}</div>
       ${extra}${foot ? `<div class="ch-foot">${foot}</div>` : ''}`;

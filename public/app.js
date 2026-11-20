@@ -16,16 +16,33 @@
   };
   langBtn.addEventListener('click', (e) => { e.preventDefault(); I18N.toggle(); });
 
+  // Show/hide a section and the nav/footer links that point to it.
+  const showSection = (id, on) => {
+    document.getElementById(id).hidden = !on;
+    document.querySelectorAll(`li > a[href="#${id}"]`).forEach((a) => { a.parentElement.hidden = !on; });
+  };
+
   // ---------- renderers ----------
   const drawTaps = () => {
     const d = data.taps; if (!d) return;
-    $('#board').innerHTML = MHB.renderBoard(d, I18N.lang);
+    $('#board').innerHTML = MHB.renderBoard(d, I18N.lang, { page: true });
     $('#updated').textContent = `${MHB.beers(d).length} ${t('taps.onTap')}${d.publishedAt ? ' · ' + t('taps.updated') + ' ' + MHB.ago(d.publishedAt, I18N.lang) : ''}`;
   };
   const drawEvents = () => {
     if (!data.events) return;
     $('#eventList').innerHTML = S.renderEvents(data.events, I18N.lang, t);
+    showSection('events', S.upcoming(data.events).length > 0);
     drawBanner();
+  };
+  const drawAnnounce = () => {
+    if (!data.announcements) return;
+    $('#annList').innerHTML = S.renderAnnouncements(data.announcements, I18N.lang, t);
+    showSection('news', S.currentAnnouncements(data.announcements).length > 0);
+  };
+  const drawMore = () => {
+    if (!data.more) return;
+    $('#moreBox').innerHTML = S.renderMore(data.more, I18N.lang, t);
+    showSection('more', (data.more.cards || []).length > 0);
   };
   const drawMerch = () => { if (data.merch) $('#merchList').innerHTML = S.renderMerch(data.merch, I18N.lang, t); };
   const drawPlaces = () => { if (data.places) $('#placeList').innerHTML = S.renderPlaces(data.places, I18N.lang, t); };
@@ -39,7 +56,7 @@
   const drawRelease = () => {
     if (!data.releases) return;
     $('#releaseBox').innerHTML = S.renderRelease(data.releases, I18N.lang, t);
-    $('#new').hidden = !S.currentRelease(data.releases);
+    showSection('new', !!S.currentRelease(data.releases));
   };
 
   // ---------- next-event banner ----------
@@ -109,6 +126,8 @@
   // ---------- live updates ----------
   MHB.watch((d) => { data.taps = d; drawTaps(); }, () => { $('#updated').textContent = t('taps.unavailable'); }, 60000, '/api/taps', data.taps);
   MHB.watch((d) => { data.events = d; drawEvents(); }, null, 300000, '/api/events', data.events);
+  MHB.watch((d) => { data.announcements = d; drawAnnounce(); }, null, 300000, '/api/announcements', data.announcements);
+  MHB.watch((d) => { data.more = d; drawMore(); }, null, 600000, '/api/more', data.more);
   MHB.watch((d) => { data.merch = d; drawMerch(); }, null, 600000, '/api/merch', data.merch);
   MHB.watch((d) => { data.places = d; drawPlaces(); }, null, 600000, '/api/places', data.places);
   MHB.watch((d) => { data.social = d; drawSocial(); }, null, 600000, '/api/social', data.social);
@@ -116,7 +135,7 @@
   MHB.watch((d) => { data.mobiletap = d; syncBook(); }, null, 600000, '/api/mobiletap', data.mobiletap);
   MHB.watch((d) => { data.info = d; drawInfo(); }, null, 600000, '/api/info', data.info);
 
-  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawMerch(); drawPlaces(); drawRelease(); drawInfo(); syncBook(); });
+  document.addEventListener('langchange', () => { syncLangBtn(); drawTaps(); drawEvents(); drawAnnounce(); drawMore(); drawMerch(); drawPlaces(); drawRelease(); drawInfo(); syncBook(); });
   $('#yr').textContent = new Date().getFullYear();
   if (I18N.changed) I18N.apply(); else { syncLangBtn(); drawBanner(); syncBook(); }
 })();
